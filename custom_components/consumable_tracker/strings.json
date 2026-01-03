@@ -1,0 +1,71 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Add Device",
+        "description": "Create a device to track multiple consumables.\n\n{example}",
+        "data": {
+          "device_name": "Device Name"
+        }
+      },
+      "add_consumable": {
+        "title": "Add Consumable",
+        "description": "{description}\n\nExamples: 'Furnace Filter', 'Humidifier Pad', 'Water Filter'",
+        "data": {
+          "consumable_name": "Consumable Name",
+          "lifetime_days": "Lifetime (days)",
+          "warning_days": "Warning Threshold (days)",
+          "icon_normal": "Icon (Normal)",
+          "icon_warning": "Icon (Warning)",
+          "icon_overdue": "Icon (Overdue)",
+          "add_another": "Add another consumable?"
+        }
+      }
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Manage Consumables",
+        "description": "Current consumables:\n\n{consumables}",
+        "data": {
+          "action": "Action"
+        }
+      },
+      "add_consumable": {
+        "title": "Add New Consumable",
+        "data": {
+          "consumable_name": "Consumable Name",
+          "lifetime_days": "Lifetime (days)",
+          "warning_days": "Warning Threshold (days)",
+          "icon_normal": "Icon (Normal)",
+          "icon_warning": "Icon (Warning)",
+          "icon_overdue": "Icon (Overdue)"
+        }
+      },
+      "select_consumable": {
+        "title": "Select Consumable to Edit",
+        "data": {
+          "consumable": "Consumable"
+        }
+      },
+      "edit_consumable": {
+        "title": "Edit Consumable",
+        "data": {
+          "consumable_name": "Consumable Name",
+          "lifetime_days": "Lifetime (days)",
+          "warning_days": "Warning Threshold (days)",
+          "icon_normal": "Icon (Normal)",
+          "icon_warning": "Icon (Warning)",
+          "icon_overdue": "Icon (Overdue)"
+        }
+      },
+      "delete_consumable": {
+        "title": "Delete Consumable",
+        "data": {
+          "consumable": "Consumable to delete"
+        }
+      }
+    }
+  }
+}

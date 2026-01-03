@@ -1,0 +1,11 @@
+{
+  "domain": "consumable_tracker",
+  "name": "Consumable Tracker",
+  "codeowners": [],
+  "config_flow": true,
+  "documentation": "https://github.com/yourusername/consumable_tracker",
+  "iot_class": "calculated",
+  "issue_tracker": "https://github.com/yourusername/consumable_tracker/issues",
+  "requirements": [],
+  "version": "2.0.0"
+}
