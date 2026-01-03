@@ -3,9 +3,9 @@
   "name": "Consumable Tracker",
   "codeowners": [],
   "config_flow": true,
-  "documentation": "https://github.com/yourusername/consumable_tracker",
+  "documentation": "https://github.com/thetic/hass-consumable-tracker",
   "iot_class": "calculated",
-  "issue_tracker": "https://github.com/yourusername/consumable_tracker/issues",
+  "issue_tracker": "https://github.com/thetic/hass-consumable-tracker/issues",
   "requirements": [],
-  "version": "2.0.0"
+  "version": "0.1.0"
 }
