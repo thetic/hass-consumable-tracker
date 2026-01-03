@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import date, datetime
+from datetime import date
 
 from homeassistant.components.date import DateEntity
 from homeassistant.config_entries import ConfigEntry
@@ -11,8 +11,7 @@ from homeassistant.helpers.entity import EntityCategory
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.restore_state import RestoreEntity
 
-from .const import (CONF_CONSUMABLE_NAME, CONF_CONSUMABLES, CONF_DEVICE_NAME,
-                    DOMAIN)
+from .const import CONF_CONSUMABLE_NAME, CONF_CONSUMABLES, CONF_DEVICE_NAME, DOMAIN
 
 
 async def async_setup_entry(

@@ -8,11 +8,18 @@ from homeassistant.components.sensor import SensorEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
-from homeassistant.helpers.restore_state import RestoreEntity
 
-from .const import (CONF_CONSUMABLE_NAME, CONF_CONSUMABLES, CONF_DEVICE_NAME,
-                    CONF_ICON_NORMAL, CONF_ICON_OVERDUE, CONF_ICON_WARNING,
-                    CONF_LIFETIME_DAYS, CONF_WARNING_DAYS, DOMAIN)
+from .const import (
+    CONF_CONSUMABLE_NAME,
+    CONF_CONSUMABLES,
+    CONF_DEVICE_NAME,
+    CONF_ICON_NORMAL,
+    CONF_ICON_OVERDUE,
+    CONF_ICON_WARNING,
+    CONF_LIFETIME_DAYS,
+    CONF_WARNING_DAYS,
+    DOMAIN,
+)
 
 
 async def async_setup_entry(
