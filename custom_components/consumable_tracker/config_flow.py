@@ -29,10 +29,10 @@ class ConsumableTrackerConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
     VERSION = 2
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize the config flow."""
-        self.device_name = None
-        self.consumables = []
+        self.device_name: str | None = None
+        self.consumables: list[dict[str, object]] = []
 
     async def async_step_user(self, user_input=None):
         """Handle the initial step - device name."""
@@ -101,6 +101,7 @@ class ConsumableTrackerConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 self.consumables.append(consumable)
 
                 # Create the entry
+                assert self.device_name is not None
                 await self.async_set_unique_id(self.device_name)
                 self._abort_if_unique_id_configured()
 
@@ -131,7 +132,7 @@ class ConsumableTrackerConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         consumable_count = len(self.consumables)
         description = f"Adding consumable {consumable_count + 1} to {self.device_name}"
         if consumable_count > 0:
-            description += f"\n\nAlready added: {', '.join([c[CONF_CONSUMABLE_NAME] for c in self.consumables])}"
+            description += f"\n\nAlready added: {', '.join([str(c[CONF_CONSUMABLE_NAME]) for c in self.consumables])}"
 
         return self.async_show_form(
             step_id="add_consumable",
@@ -150,11 +151,13 @@ class ConsumableTrackerConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 class ConsumableTrackerOptionsFlow(config_entries.OptionsFlow):
     """Handle options flow for Consumable Tracker."""
 
-    def __init__(self, config_entry):
+    def __init__(self, config_entry: config_entries.ConfigEntry) -> None:
         """Initialize options flow."""
         self._config_entry = config_entry
-        self.consumables = list(config_entry.data.get(CONF_CONSUMABLES, []))
-        self.editing_index = None
+        self.consumables: list[dict[str, object]] = list(
+            config_entry.data.get(CONF_CONSUMABLES, [])
+        )
+        self.editing_index: int | None = None
 
     async def async_step_init(self, user_input=None):
         """Manage the options - choose what to do."""
@@ -257,6 +260,7 @@ class ConsumableTrackerOptionsFlow(config_entries.OptionsFlow):
 
     async def async_step_edit_consumable(self, user_input=None):
         """Edit the selected consumable."""
+        assert self.editing_index is not None
         if user_input is not None:
             self.consumables[self.editing_index] = {
                 CONF_CONSUMABLE_NAME: user_input[CONF_CONSUMABLE_NAME],

@@ -72,12 +72,8 @@ async def test_sensor_with_date_set(hass: HomeAssistant) -> None:
     )
     await hass.async_block_till_done()
 
-    # Force sensor to update
-    sensor_entity_id = "sensor.test_device_test_filter_days_remaining"
-    hass.states.async_set(sensor_entity_id, None)
-    await hass.async_block_till_done()
-
     # Get the sensor entity directly to check its native_value
+    sensor_entity_id = "sensor.test_device_test_filter_days_remaining"
     entity = hass.data["entity_components"]["sensor"].get_entity(sensor_entity_id)
     assert entity is not None
     assert entity.native_value == 60  # 90 - 30 = 60 days remaining

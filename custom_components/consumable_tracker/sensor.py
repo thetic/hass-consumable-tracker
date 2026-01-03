@@ -66,7 +66,7 @@ class ConsumableTrackerSensor(SensorEntity):
             f"date.{self.entity_id.split('.')[1].rsplit('_', 2)[0]}_last_replaced"
         )
 
-    def _get_last_replaced_date(self) -> datetime.date | None:
+    def _get_last_replaced_date(self) -> date | None:
         """Get the last replaced date from the date entity."""
         if not self._datetime_entity_id:
             return None
