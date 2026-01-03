@@ -53,8 +53,9 @@ class ConsumableReplacedButton(ButtonEntity):
         date_id = f"{self._entry.entry_id}_consumable_{self._index}_last_replaced"
 
         # Get all date entities
-        for _entity_id, entity in self.hass.data.get("date", {}).entities.items():
-            if hasattr(entity, "unique_id") and entity.unique_id == date_id:
-                # Set to today
-                entity.set_value(date.today())
-                break
+        entity_component = self.hass.data.get("entity_components", {}).get("date")
+        if entity_component:
+            for entity in entity_component.entities:
+                if hasattr(entity, "unique_id") and entity.unique_id == date_id:
+                    await entity.async_set_value(date.today())
+                    break
