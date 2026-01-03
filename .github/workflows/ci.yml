@@ -1,4 +1,4 @@
-name: Lint
+name: CI
 
 on:
   push:
@@ -14,3 +14,10 @@ jobs:
       - uses: astral-sh/setup-uv@v5
       - run: uv run ruff check
       - run: uv run ruff format --check
+
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+      - run: uv run pytest
