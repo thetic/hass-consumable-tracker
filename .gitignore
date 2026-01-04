@@ -1,5 +1,6 @@
 __pycache__/
 *.py[cod]
+*.png
 .venv/
 .pytest_cache/
 .coverage
