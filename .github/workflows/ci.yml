@@ -39,3 +39,9 @@ jobs:
           # Ignore brands check until PR is merged:
           # https://github.com/home-assistant/brands/pull/8964
           ignore: brands
+
+  hassfest:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: home-assistant/actions/hassfest@master
