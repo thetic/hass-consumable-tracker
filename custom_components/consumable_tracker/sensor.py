@@ -6,8 +6,12 @@ from datetime import date, datetime, timedelta
 
 from homeassistant.components.sensor import SensorEntity
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.core import HomeAssistant
+from homeassistant.core import Event, HomeAssistant, callback
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.helpers.event import (
+    EventStateChangedData,
+    async_track_state_change_event,
+)
 
 from .const import (
     CONF_CONSUMABLE_NAME,
@@ -57,14 +61,31 @@ class ConsumableTrackerSensor(SensorEntity):
         }
         self._attr_name = f"{consumable[CONF_CONSUMABLE_NAME]} days remaining"
         self._datetime_entity_id = None
+        self._unsub_state_change = None
 
     async def async_added_to_hass(self) -> None:
-        """Set up entity ID for date entity."""
+        """Set up entity ID for date entity and subscribe to state changes."""
         await super().async_added_to_hass()
         # Store the date entity ID for quick access
         self._datetime_entity_id = (
             f"date.{self.entity_id.split('.')[1].rsplit('_', 2)[0]}_last_replaced"
         )
+
+        # Subscribe to state changes from the date entity
+        self._unsub_state_change = async_track_state_change_event(
+            self.hass, [self._datetime_entity_id], self._handle_date_state_change
+        )
+
+    async def async_will_remove_from_hass(self) -> None:
+        """Unsubscribe from state changes when entity is removed."""
+        if self._unsub_state_change:
+            self._unsub_state_change()
+            self._unsub_state_change = None
+
+    @callback
+    def _handle_date_state_change(self, event: Event[EventStateChangedData]) -> None:
+        """Handle state changes from the date entity."""
+        self.async_write_ha_state()
 
     def _get_last_replaced_date(self) -> date | None:
         """Get the last replaced date from the date entity."""
