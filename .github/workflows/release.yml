@@ -1,0 +1,42 @@
+name: Release
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "custom_components/consumable_tracker/manifest.json"
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Get version from manifest
+        id: version
+        run: |
+          version=$(jq -r '.version' custom_components/consumable_tracker/manifest.json)
+          echo "version=$version" >> $GITHUB_OUTPUT
+
+      - name: Check if version changed
+        id: changed
+        run: |
+          git show HEAD~1:custom_components/consumable_tracker/manifest.json > /tmp/old_manifest.json 2>/dev/null || echo '{"version":""}' > /tmp/old_manifest.json
+          old_version=$(jq -r '.version' /tmp/old_manifest.json)
+          new_version=${{ steps.version.outputs.version }}
+          if [ "$old_version" != "$new_version" ]; then
+            echo "changed=true" >> $GITHUB_OUTPUT
+          else
+            echo "changed=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Create release
+        if: steps.changed.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "v${{ steps.version.outputs.version }}" \
+            --title "v${{ steps.version.outputs.version }}" \
+            --generate-notes
