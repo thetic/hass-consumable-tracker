@@ -1,7 +1,7 @@
 {
   "domain": "consumable_tracker",
   "name": "Consumable Tracker",
-  "codeowners": [],
+  "codeowners": ["@thetic"],
   "config_flow": true,
   "documentation": "https://github.com/thetic/hass-consumable-tracker",
   "iot_class": "calculated",
