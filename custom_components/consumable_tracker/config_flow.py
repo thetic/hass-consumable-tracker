@@ -24,6 +24,18 @@ from .const import (
 )
 
 
+def _build_consumable_dict(user_input: dict) -> dict:
+    """Build a consumable dictionary from user input."""
+    return {
+        CONF_CONSUMABLE_NAME: user_input[CONF_CONSUMABLE_NAME],
+        CONF_LIFETIME_DAYS: user_input[CONF_LIFETIME_DAYS],
+        CONF_WARNING_DAYS: user_input[CONF_WARNING_DAYS],
+        CONF_ICON_NORMAL: user_input.get(CONF_ICON_NORMAL, DEFAULT_ICON_NORMAL),
+        CONF_ICON_WARNING: user_input.get(CONF_ICON_WARNING, DEFAULT_ICON_WARNING),
+        CONF_ICON_OVERDUE: user_input.get(CONF_ICON_OVERDUE, DEFAULT_ICON_OVERDUE),
+    }
+
+
 class ConsumableTrackerConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     """Handle a config flow for Consumable Tracker."""
 
@@ -67,22 +79,7 @@ class ConsumableTrackerConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 errors[CONF_WARNING_DAYS] = "warning_exceeds_lifetime"
 
             if not errors:
-                # Save this consumable
-                consumable = {
-                    CONF_CONSUMABLE_NAME: user_input[CONF_CONSUMABLE_NAME],
-                    CONF_LIFETIME_DAYS: user_input[CONF_LIFETIME_DAYS],
-                    CONF_WARNING_DAYS: user_input[CONF_WARNING_DAYS],
-                    CONF_ICON_NORMAL: user_input.get(
-                        CONF_ICON_NORMAL, DEFAULT_ICON_NORMAL
-                    ),
-                    CONF_ICON_WARNING: user_input.get(
-                        CONF_ICON_WARNING, DEFAULT_ICON_WARNING
-                    ),
-                    CONF_ICON_OVERDUE: user_input.get(
-                        CONF_ICON_OVERDUE, DEFAULT_ICON_OVERDUE
-                    ),
-                }
-                self.consumables.append(consumable)
+                self.consumables.append(_build_consumable_dict(user_input))
 
                 if user_input.get("add_another"):
                     # Show form again for next consumable
@@ -205,21 +202,7 @@ class ConsumableTrackerOptionsFlow(config_entries.OptionsFlow):
                 errors[CONF_WARNING_DAYS] = "warning_exceeds_lifetime"
 
             if not errors:
-                consumable = {
-                    CONF_CONSUMABLE_NAME: user_input[CONF_CONSUMABLE_NAME],
-                    CONF_LIFETIME_DAYS: user_input[CONF_LIFETIME_DAYS],
-                    CONF_WARNING_DAYS: user_input[CONF_WARNING_DAYS],
-                    CONF_ICON_NORMAL: user_input.get(
-                        CONF_ICON_NORMAL, DEFAULT_ICON_NORMAL
-                    ),
-                    CONF_ICON_WARNING: user_input.get(
-                        CONF_ICON_WARNING, DEFAULT_ICON_WARNING
-                    ),
-                    CONF_ICON_OVERDUE: user_input.get(
-                        CONF_ICON_OVERDUE, DEFAULT_ICON_OVERDUE
-                    ),
-                }
-                self.consumables.append(consumable)
+                self.consumables.append(_build_consumable_dict(user_input))
                 return await self.async_step_init()
 
         data_schema = vol.Schema(
@@ -266,20 +249,9 @@ class ConsumableTrackerOptionsFlow(config_entries.OptionsFlow):
                 errors[CONF_WARNING_DAYS] = "warning_exceeds_lifetime"
 
             if not errors:
-                self.consumables[self.editing_index] = {
-                    CONF_CONSUMABLE_NAME: user_input[CONF_CONSUMABLE_NAME],
-                    CONF_LIFETIME_DAYS: user_input[CONF_LIFETIME_DAYS],
-                    CONF_WARNING_DAYS: user_input[CONF_WARNING_DAYS],
-                    CONF_ICON_NORMAL: user_input.get(
-                        CONF_ICON_NORMAL, DEFAULT_ICON_NORMAL
-                    ),
-                    CONF_ICON_WARNING: user_input.get(
-                        CONF_ICON_WARNING, DEFAULT_ICON_WARNING
-                    ),
-                    CONF_ICON_OVERDUE: user_input.get(
-                        CONF_ICON_OVERDUE, DEFAULT_ICON_OVERDUE
-                    ),
-                }
+                self.consumables[self.editing_index] = _build_consumable_dict(
+                    user_input
+                )
                 return await self.async_step_init()
 
         consumable = self.consumables[self.editing_index]
