@@ -11,7 +11,7 @@ requires-python = ">=3.13.2"
 [dependency-groups]
 dev = [
     "ruff>=0.9.4",
-    "ty>=0.0.8",
+    "ty>=0.0.10",
     "pytest-homeassistant-custom-component>=0.13.0",
 ]
 
@@ -29,10 +29,14 @@ select = [
     "C4",     # flake8-comprehensions
     "UP",     # pyupgrade
     "SIM",    # flake8-simplify
+    "ANN",    # flake8-annotations
 ]
 ignore = [
     "E501",   # line too long (handled by formatter)
 ]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["ANN"]  # Don't require annotations in tests
 
 [tool.ruff.lint.isort]
 known-first-party = ["custom_components.consumable_tracker"]
