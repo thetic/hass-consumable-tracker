@@ -2,6 +2,9 @@
 
 DOMAIN = "consumable_tracker"
 
+MANUFACTURER = "Consumable Tracker"
+MODEL = "Multi-Consumable Device"
+
 CONF_DEVICE_NAME = "device_name"
 CONF_CONSUMABLES = "consumables"
 CONF_CONSUMABLE_NAME = "consumable_name"

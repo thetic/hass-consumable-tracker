@@ -7,6 +7,7 @@ from datetime import date, datetime, timedelta
 from homeassistant.components.sensor import SensorEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import Event, HomeAssistant, callback
+from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.event import (
     EventStateChangedData,
@@ -23,6 +24,8 @@ from .const import (
     CONF_LIFETIME_DAYS,
     CONF_WARNING_DAYS,
     DOMAIN,
+    MANUFACTURER,
+    MODEL,
 )
 
 
@@ -56,25 +59,39 @@ class ConsumableTrackerSensor(SensorEntity):
         self._attr_device_info = {
             "identifiers": {(DOMAIN, entry.entry_id)},
             "name": entry.data[CONF_DEVICE_NAME],
-            "manufacturer": "Consumable Tracker",
-            "model": "Multi-Consumable Device",
+            "manufacturer": MANUFACTURER,
+            "model": MODEL,
         }
         self._attr_name = f"{consumable[CONF_CONSUMABLE_NAME]} days remaining"
-        self._datetime_entity_id = None
+        self._date_unique_id = f"{entry.entry_id}_consumable_{index}_last_replaced"
+        self._datetime_entity_id: str | None = None
         self._unsub_state_change = None
+
+    def _get_date_entity_id(self) -> str | None:
+        """Get the date entity ID from the registry, caching the result."""
+        if self._datetime_entity_id is None:
+            entity_registry = er.async_get(self.hass)
+            self._datetime_entity_id = entity_registry.async_get_entity_id(
+                "date", DOMAIN, self._date_unique_id
+            )
+        return self._datetime_entity_id
 
     async def async_added_to_hass(self) -> None:
         """Set up entity ID for date entity and subscribe to state changes."""
         await super().async_added_to_hass()
-        # Store the date entity ID for quick access
-        self._datetime_entity_id = (
-            f"date.{self.entity_id.split('.')[1].rsplit('_', 2)[0]}_last_replaced"
-        )
 
-        # Subscribe to state changes from the date entity
-        self._unsub_state_change = async_track_state_change_event(
-            self.hass, [self._datetime_entity_id], self._handle_date_state_change
-        )
+        # Subscribe to state changes from the date entity (deferred lookup)
+        @callback
+        def async_subscribe_to_date_entity(_: object = None) -> None:
+            """Subscribe to date entity once it's available."""
+            date_entity_id = self._get_date_entity_id()
+            if date_entity_id and not self._unsub_state_change:
+                self._unsub_state_change = async_track_state_change_event(
+                    self.hass, [date_entity_id], self._handle_date_state_change
+                )
+
+        # Try to subscribe now, or schedule for later
+        async_subscribe_to_date_entity()
 
     async def async_will_remove_from_hass(self) -> None:
         """Unsubscribe from state changes when entity is removed."""
@@ -89,10 +106,11 @@ class ConsumableTrackerSensor(SensorEntity):
 
     def _get_last_replaced_date(self) -> date | None:
         """Get the last replaced date from the date entity."""
-        if not self._datetime_entity_id:
+        date_entity_id = self._get_date_entity_id()
+        if not date_entity_id:
             return None
 
-        state = self.hass.states.get(self._datetime_entity_id)
+        state = self.hass.states.get(date_entity_id)
         if state and state.state not in ["unknown", "unavailable"]:
             try:
                 return date.fromisoformat(state.state)

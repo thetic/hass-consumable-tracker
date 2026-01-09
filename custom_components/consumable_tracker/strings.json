@@ -21,6 +21,9 @@
           "add_another": "Add another consumable?"
         }
       }
+    },
+    "error": {
+      "warning_exceeds_lifetime": "Warning threshold must be less than lifetime"
     }
   },
   "options": {
@@ -66,6 +69,9 @@
           "consumable": "Consumable to delete"
         }
       }
+    },
+    "error": {
+      "warning_exceeds_lifetime": "Warning threshold must be less than lifetime"
     }
   }
 }

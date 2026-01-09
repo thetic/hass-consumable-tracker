@@ -233,3 +233,84 @@ async def test_options_flow_delete_consumable(
 
     assert result["type"] is FlowResultType.CREATE_ENTRY
     assert len(config_entry.data[CONF_CONSUMABLES]) == 0
+
+
+async def test_config_flow_warning_exceeds_lifetime(hass: HomeAssistant) -> None:
+    """Test validation error when warning_days >= lifetime_days in config flow."""
+    result = await hass.config_entries.flow.async_init(
+        DOMAIN, context={"source": config_entries.SOURCE_USER}
+    )
+
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"],
+        {CONF_DEVICE_NAME: "Test Device"},
+    )
+
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"],
+        {
+            CONF_CONSUMABLE_NAME: "Test Filter",
+            CONF_LIFETIME_DAYS: 30,
+            CONF_WARNING_DAYS: 30,
+            "add_another": False,
+        },
+    )
+
+    assert result["type"] is FlowResultType.FORM
+    assert result["step_id"] == "add_consumable"
+    assert result["errors"] == {CONF_WARNING_DAYS: "warning_exceeds_lifetime"}
+
+
+async def test_options_flow_add_warning_exceeds_lifetime(
+    hass: HomeAssistant, config_entry: config_entries.ConfigEntry
+) -> None:
+    """Test validation error when warning_days >= lifetime_days in options add."""
+    result = await hass.config_entries.options.async_init(config_entry.entry_id)
+
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"],
+        {"action": "add"},
+    )
+
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"],
+        {
+            CONF_CONSUMABLE_NAME: "New Filter",
+            CONF_LIFETIME_DAYS: 60,
+            CONF_WARNING_DAYS: 60,
+        },
+    )
+
+    assert result["type"] is FlowResultType.FORM
+    assert result["step_id"] == "add_consumable"
+    assert result["errors"] == {CONF_WARNING_DAYS: "warning_exceeds_lifetime"}
+
+
+async def test_options_flow_edit_warning_exceeds_lifetime(
+    hass: HomeAssistant, config_entry: config_entries.ConfigEntry
+) -> None:
+    """Test validation error when warning_days >= lifetime_days in options edit."""
+    result = await hass.config_entries.options.async_init(config_entry.entry_id)
+
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"],
+        {"action": "edit"},
+    )
+
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"],
+        {"consumable": "0"},
+    )
+
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"],
+        {
+            CONF_CONSUMABLE_NAME: "Test Filter",
+            CONF_LIFETIME_DAYS: 90,
+            CONF_WARNING_DAYS: 100,
+        },
+    )
+
+    assert result["type"] is FlowResultType.FORM
+    assert result["step_id"] == "edit_consumable"
+    assert result["errors"] == {CONF_WARNING_DAYS: "warning_exceeds_lifetime"}

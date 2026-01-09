@@ -11,7 +11,14 @@ from homeassistant.helpers.entity import EntityCategory
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.restore_state import RestoreEntity
 
-from .const import CONF_CONSUMABLE_NAME, CONF_CONSUMABLES, CONF_DEVICE_NAME, DOMAIN
+from .const import (
+    CONF_CONSUMABLE_NAME,
+    CONF_CONSUMABLES,
+    CONF_DEVICE_NAME,
+    DOMAIN,
+    MANUFACTURER,
+    MODEL,
+)
 
 
 async def async_setup_entry(
@@ -44,8 +51,8 @@ class ConsumableLastReplacedDate(RestoreEntity, DateEntity):
         self._attr_device_info = {
             "identifiers": {(DOMAIN, entry.entry_id)},
             "name": entry.data[CONF_DEVICE_NAME],
-            "manufacturer": "Consumable Tracker",
-            "model": "Multi-Consumable Device",
+            "manufacturer": MANUFACTURER,
+            "model": MODEL,
         }
         self._attr_name = f"{consumable[CONF_CONSUMABLE_NAME]} last replaced"
         self._attr_native_value = None
