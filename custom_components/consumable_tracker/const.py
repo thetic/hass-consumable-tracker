@@ -13,6 +13,6 @@ CONF_ICON_OVERDUE = "icon_overdue"
 
 DEFAULT_LIFETIME_DAYS = 90
 DEFAULT_WARNING_DAYS = 15
-DEFAULT_ICON_NORMAL = "mdi:air-filter"
-DEFAULT_ICON_WARNING = "mdi:alert-circle"
-DEFAULT_ICON_OVERDUE = "mdi:alert-octagon"
+DEFAULT_ICON_NORMAL = "mdi:gauge-full"
+DEFAULT_ICON_WARNING = "mdi:gauge-low"
+DEFAULT_ICON_OVERDUE = "mdi:gauge-empty"
