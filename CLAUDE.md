@@ -8,7 +8,7 @@ Development:
 - Pull requests should only be merged when CI passes.
 - Commits should be small and complete.
 - Don't reference Claude or Anthropic in commit messages.
-- Tests and lint should pass before committing.
+- Tests and lint (ruff, ty) should pass before committing.
 - Never use `git push --force`. Use `--force-with-lease` instead.
 - Strive for total behavioral coverage, but 100% structural coverage isn't
   worthwhile.

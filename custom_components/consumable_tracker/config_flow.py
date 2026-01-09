@@ -2,9 +2,16 @@
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 import voluptuous as vol
 from homeassistant import config_entries
 from homeassistant.core import callback
+
+if TYPE_CHECKING:
+    from typing import Any
+
+    from homeassistant.config_entries import ConfigFlowResult
 
 from .const import (
     CONF_CONSUMABLE_NAME,
@@ -54,7 +61,10 @@ class ConsumableTrackerConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         self.device_name: str | None = None
         self.consumables: list[dict[str, object]] = []
 
-    async def async_step_user(self, user_input=None):
+    async def async_step_user(
+        self,
+        user_input: dict[str, Any] | None = None,
+    ) -> ConfigFlowResult:
         """Handle the initial step - device name."""
         errors = {}
 
@@ -77,7 +87,10 @@ class ConsumableTrackerConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             },
         )
 
-    async def async_step_add_consumable(self, user_input=None):
+    async def async_step_add_consumable(
+        self,
+        user_input: dict[str, Any] | None = None,
+    ) -> ConfigFlowResult:
         """Handle adding a consumable."""
         errors: dict[str, str] = {}
 
@@ -134,7 +147,9 @@ class ConsumableTrackerConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
     @staticmethod
     @callback
-    def async_get_options_flow(config_entry):
+    def async_get_options_flow(
+        config_entry: config_entries.ConfigEntry,
+    ) -> ConsumableTrackerOptionsFlow:
         """Get the options flow for this handler."""
         return ConsumableTrackerOptionsFlow(config_entry)
 
@@ -150,7 +165,10 @@ class ConsumableTrackerOptionsFlow(config_entries.OptionsFlow):
         )
         self.editing_index: int | None = None
 
-    async def async_step_init(self, user_input=None):
+    async def async_step_init(
+        self,
+        user_input: dict[str, Any] | None = None,
+    ) -> ConfigFlowResult:
         """Manage the options - choose what to do."""
         if user_input is not None:
             action = user_input.get("action")
@@ -199,7 +217,10 @@ class ConsumableTrackerOptionsFlow(config_entries.OptionsFlow):
             },
         )
 
-    async def async_step_add_consumable(self, user_input=None):
+    async def async_step_add_consumable(
+        self,
+        user_input: dict[str, Any] | None = None,
+    ) -> ConfigFlowResult:
         """Add a new consumable."""
         errors: dict[str, str] = {}
 
@@ -229,7 +250,10 @@ class ConsumableTrackerOptionsFlow(config_entries.OptionsFlow):
             step_id="add_consumable", data_schema=data_schema, errors=errors
         )
 
-    async def async_step_select_consumable(self, user_input=None):
+    async def async_step_select_consumable(
+        self,
+        user_input: dict[str, Any] | None = None,
+    ) -> ConfigFlowResult:
         """Select which consumable to edit."""
         if user_input is not None:
             self.editing_index = int(user_input["consumable"])
@@ -244,7 +268,10 @@ class ConsumableTrackerOptionsFlow(config_entries.OptionsFlow):
             data_schema=vol.Schema({vol.Required("consumable"): vol.In(choices)}),
         )
 
-    async def async_step_edit_consumable(self, user_input=None):
+    async def async_step_edit_consumable(
+        self,
+        user_input: dict[str, Any] | None = None,
+    ) -> ConfigFlowResult:
         """Edit the selected consumable."""
         errors: dict[str, str] = {}
         assert self.editing_index is not None
@@ -289,7 +316,10 @@ class ConsumableTrackerOptionsFlow(config_entries.OptionsFlow):
             step_id="edit_consumable", data_schema=data_schema, errors=errors
         )
 
-    async def async_step_delete_consumable(self, user_input=None):
+    async def async_step_delete_consumable(
+        self,
+        user_input: dict[str, Any] | None = None,
+    ) -> ConfigFlowResult:
         """Delete a consumable."""
         if user_input is not None:
             index = int(user_input["consumable"])
