@@ -36,6 +36,14 @@ def _build_consumable_dict(user_input: dict) -> dict:
     }
 
 
+def _validate_consumable_input(user_input: dict) -> dict[str, str]:
+    """Validate consumable input and return errors dict."""
+    errors: dict[str, str] = {}
+    if user_input[CONF_WARNING_DAYS] >= user_input[CONF_LIFETIME_DAYS]:
+        errors[CONF_WARNING_DAYS] = "warning_exceeds_lifetime"
+    return errors
+
+
 class ConsumableTrackerConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     """Handle a config flow for Consumable Tracker."""
 
@@ -71,12 +79,10 @@ class ConsumableTrackerConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
     async def async_step_add_consumable(self, user_input=None):
         """Handle adding a consumable."""
-        errors = {}
+        errors: dict[str, str] = {}
 
         if user_input is not None:
-            # Validate warning_days < lifetime_days
-            if user_input[CONF_WARNING_DAYS] >= user_input[CONF_LIFETIME_DAYS]:
-                errors[CONF_WARNING_DAYS] = "warning_exceeds_lifetime"
+            errors = _validate_consumable_input(user_input)
 
             if not errors:
                 self.consumables.append(_build_consumable_dict(user_input))
@@ -195,11 +201,10 @@ class ConsumableTrackerOptionsFlow(config_entries.OptionsFlow):
 
     async def async_step_add_consumable(self, user_input=None):
         """Add a new consumable."""
-        errors = {}
+        errors: dict[str, str] = {}
 
         if user_input is not None:
-            if user_input[CONF_WARNING_DAYS] >= user_input[CONF_LIFETIME_DAYS]:
-                errors[CONF_WARNING_DAYS] = "warning_exceeds_lifetime"
+            errors = _validate_consumable_input(user_input)
 
             if not errors:
                 self.consumables.append(_build_consumable_dict(user_input))
@@ -241,12 +246,11 @@ class ConsumableTrackerOptionsFlow(config_entries.OptionsFlow):
 
     async def async_step_edit_consumable(self, user_input=None):
         """Edit the selected consumable."""
-        errors = {}
+        errors: dict[str, str] = {}
         assert self.editing_index is not None
 
         if user_input is not None:
-            if user_input[CONF_WARNING_DAYS] >= user_input[CONF_LIFETIME_DAYS]:
-                errors[CONF_WARNING_DAYS] = "warning_exceeds_lifetime"
+            errors = _validate_consumable_input(user_input)
 
             if not errors:
                 self.consumables[self.editing_index] = _build_consumable_dict(
