@@ -6,7 +6,7 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import device_registry as dr
 
-from .const import CONF_DEVICE_NAME, DOMAIN
+from .const import CONF_DEVICE_NAME, DOMAIN, MANUFACTURER, MODEL
 
 PLATFORMS = ["sensor", "button", "date"]
 
@@ -22,8 +22,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         config_entry_id=entry.entry_id,
         identifiers={(DOMAIN, entry.entry_id)},
         name=entry.data[CONF_DEVICE_NAME],
-        manufacturer="Consumable Tracker",
-        model="Multi-Consumable Device",
+        manufacturer=MANUFACTURER,
+        model=MODEL,
     )
 
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)

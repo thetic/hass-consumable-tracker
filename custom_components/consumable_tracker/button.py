@@ -9,7 +9,14 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-from .const import CONF_CONSUMABLE_NAME, CONF_CONSUMABLES, CONF_DEVICE_NAME, DOMAIN
+from .const import (
+    CONF_CONSUMABLE_NAME,
+    CONF_CONSUMABLES,
+    CONF_DEVICE_NAME,
+    DOMAIN,
+    MANUFACTURER,
+    MODEL,
+)
 
 
 async def async_setup_entry(
@@ -42,8 +49,8 @@ class ConsumableReplacedButton(ButtonEntity):
         self._attr_device_info = {
             "identifiers": {(DOMAIN, entry.entry_id)},
             "name": entry.data[CONF_DEVICE_NAME],
-            "manufacturer": "Consumable Tracker",
-            "model": "Multi-Consumable Device",
+            "manufacturer": MANUFACTURER,
+            "model": MODEL,
         }
         self._attr_name = f"Mark {consumable[CONF_CONSUMABLE_NAME]} as replaced"
 

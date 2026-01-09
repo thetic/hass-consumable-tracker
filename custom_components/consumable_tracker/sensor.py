@@ -23,6 +23,8 @@ from .const import (
     CONF_LIFETIME_DAYS,
     CONF_WARNING_DAYS,
     DOMAIN,
+    MANUFACTURER,
+    MODEL,
 )
 
 
@@ -56,8 +58,8 @@ class ConsumableTrackerSensor(SensorEntity):
         self._attr_device_info = {
             "identifiers": {(DOMAIN, entry.entry_id)},
             "name": entry.data[CONF_DEVICE_NAME],
-            "manufacturer": "Consumable Tracker",
-            "model": "Multi-Consumable Device",
+            "manufacturer": MANUFACTURER,
+            "model": MODEL,
         }
         self._attr_name = f"{consumable[CONF_CONSUMABLE_NAME]} days remaining"
         self._datetime_entity_id = None
