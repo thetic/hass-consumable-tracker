@@ -1,0 +1,72 @@
+blueprint:
+  name: Consumable Low/Depleted Notification
+  description: >-
+    Create a persistent notification when a consumable reaches its warning
+    threshold, and update it when the consumable is fully depleted.
+    The notification is dismissed when the consumable is replaced.
+  domain: automation
+  input:
+    consumable_sensor:
+      name: Consumable Sensor
+      description: The consumable tracker sensor to monitor.
+      selector:
+        entity:
+          filter:
+            - domain: sensor
+              integration: consumable_tracker
+    warning_days_override:
+      name: Warning Days Override
+      description: >-
+        Override the warning threshold (in days). Leave at 0 to use the
+        sensor's configured warning_days attribute.
+      default: 0
+      selector:
+        number:
+          min: 0
+          max: 365
+          unit_of_measurement: days
+
+mode: restart
+
+triggers:
+  - trigger: state
+    entity_id: !input consumable_sensor
+
+variables:
+  consumable_sensor: !input consumable_sensor
+  warning_days_override: !input warning_days_override
+  consumable_name: "{{ state_attr(consumable_sensor, 'consumable_name') }}"
+  days_remaining: "{{ states(consumable_sensor) | int(0) }}"
+  warning_days: "{{ warning_days_override if warning_days_override > 0 else state_attr(consumable_sensor, 'warning_days') | int(0) }}"
+  notification_id: "consumable_{{ consumable_sensor | replace('.', '_') }}"
+  is_warning: "{{ days_remaining <= warning_days and days_remaining > 0 }}"
+  is_depleted: "{{ days_remaining == 0 }}"
+  is_normal: "{{ days_remaining > warning_days }}"
+
+actions:
+  - choose:
+      - conditions:
+          - condition: template
+            value_template: "{{ is_depleted }}"
+        sequence:
+          - action: persistent_notification.create
+            data:
+              title: "{{ consumable_name }} Needs Replacement"
+              message: "{{ consumable_name }} is due for replacement."
+              notification_id: "{{ notification_id }}"
+      - conditions:
+          - condition: template
+            value_template: "{{ is_warning }}"
+        sequence:
+          - action: persistent_notification.create
+            data:
+              title: "{{ consumable_name }} Replacement Soon"
+              message: "{{ consumable_name }} has {{ days_remaining }} days remaining."
+              notification_id: "{{ notification_id }}"
+      - conditions:
+          - condition: template
+            value_template: "{{ is_normal }}"
+        sequence:
+          - action: persistent_notification.dismiss
+            data:
+              notification_id: "{{ notification_id }}"

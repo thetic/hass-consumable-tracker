@@ -85,25 +85,32 @@ The sensor includes additional attributes:
 - **Medical Equipment**: CPAP filters, nebulizer supplies
 - **Vehicles**: Cabin air filters, windshield wipers
 
-## Automation Examples
+## Blueprints
 
-### Notify when filter needs replacement
+### Low/Depleted Notification
 
-```yaml
-automation:
-  - alias: "Furnace filter warning"
-    trigger:
-      - platform: numeric_state
-        entity_id: sensor.hvac_system_furnace_filter_days_remaining
-        below: 15
-    action:
-      - service: notify.mobile_app
-        data:
-          title: "Filter Replacement Needed"
-          message: "Furnace filter has {{ states('sensor.hvac_system_furnace_filter_days_remaining') }} days remaining"
-```
+This integration includes a blueprint that creates persistent notifications when consumables need attention:
 
-### Dashboard card example
+[![Open your Home Assistant instance and show the blueprint import dialog with a specific blueprint pre-filled.](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2Fthetic%2Fhass-consumable-tracker%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fconsumable_notification.yaml)
+
+Click the badge above to import, then create an automation from the blueprint for each consumable you want to monitor.
+
+<details>
+<summary>Manual import instructions</summary>
+
+1. Go to **Settings** > **Automations & Scenes** > **Blueprints**
+2. Click **Import Blueprint**
+3. Enter: `https://github.com/thetic/hass-consumable-tracker/blob/main/blueprints/automation/consumable_notification.yaml`
+4. Create an automation from the blueprint for each consumable you want to monitor
+
+</details>
+
+The blueprint will:
+- Show a warning notification when days remaining reaches the warning threshold
+- Update to an urgent notification when the consumable is fully depleted
+- Automatically dismiss the notification when the consumable is replaced
+
+## Dashboard Example
 
 ```yaml
 type: entities
