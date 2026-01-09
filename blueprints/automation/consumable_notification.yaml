@@ -31,6 +31,8 @@ mode: restart
 triggers:
   - trigger: state
     entity_id: !input consumable_sensor
+  - trigger: time
+    at: "00:01:00"
 
 variables:
   consumable_sensor: !input consumable_sensor
