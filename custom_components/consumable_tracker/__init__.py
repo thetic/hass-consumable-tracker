@@ -8,7 +8,7 @@ from homeassistant.helpers import device_registry as dr
 
 from .const import CONF_DEVICE_NAME, DOMAIN, MANUFACTURER, MODEL
 
-PLATFORMS = ["sensor", "button", "date"]
+PLATFORMS = ["date", "sensor", "button"]
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
