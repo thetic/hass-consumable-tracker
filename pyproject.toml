@@ -1,6 +1,10 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
 [project]
 name = "hass-consumable-tracker"
-version = "0.2.0"
+dynamic = ["version"]
 description = "Home Assistant custom integration for tracking consumable items"
 requires-python = ">=3.13.2"
 
@@ -47,3 +51,10 @@ exclude_lines = [
     "pragma: no cover",
     "if TYPE_CHECKING:",
 ]
+
+[tool.hatch.version]
+path = "custom_components/consumable_tracker/manifest.json"
+pattern = "\"version\":\\s*\"(?P<version>[^\"]+)\""
+
+[tool.hatch.build.targets.wheel]
+packages = ["custom_components/consumable_tracker"]
