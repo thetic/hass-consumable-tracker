@@ -62,8 +62,11 @@ class ConsumableTrackerConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         errors = {}
 
         if user_input is not None:
-            # Check if user wants to add more
-            if user_input.get("add_another"):
+            # Validate warning_days < lifetime_days
+            if user_input[CONF_WARNING_DAYS] >= user_input[CONF_LIFETIME_DAYS]:
+                errors[CONF_WARNING_DAYS] = "warning_exceeds_lifetime"
+
+            if not errors:
                 # Save this consumable
                 consumable = {
                     CONF_CONSUMABLE_NAME: user_input[CONF_CONSUMABLE_NAME],
@@ -80,25 +83,10 @@ class ConsumableTrackerConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                     ),
                 }
                 self.consumables.append(consumable)
-                # Show form again for next consumable
-                return await self.async_step_add_consumable()
-            else:
-                # Save this consumable and finish
-                consumable = {
-                    CONF_CONSUMABLE_NAME: user_input[CONF_CONSUMABLE_NAME],
-                    CONF_LIFETIME_DAYS: user_input[CONF_LIFETIME_DAYS],
-                    CONF_WARNING_DAYS: user_input[CONF_WARNING_DAYS],
-                    CONF_ICON_NORMAL: user_input.get(
-                        CONF_ICON_NORMAL, DEFAULT_ICON_NORMAL
-                    ),
-                    CONF_ICON_WARNING: user_input.get(
-                        CONF_ICON_WARNING, DEFAULT_ICON_WARNING
-                    ),
-                    CONF_ICON_OVERDUE: user_input.get(
-                        CONF_ICON_OVERDUE, DEFAULT_ICON_OVERDUE
-                    ),
-                }
-                self.consumables.append(consumable)
+
+                if user_input.get("add_another"):
+                    # Show form again for next consumable
+                    return await self.async_step_add_consumable()
 
                 # Create the entry
                 assert self.device_name is not None
@@ -210,21 +198,29 @@ class ConsumableTrackerOptionsFlow(config_entries.OptionsFlow):
 
     async def async_step_add_consumable(self, user_input=None):
         """Add a new consumable."""
+        errors = {}
+
         if user_input is not None:
-            consumable = {
-                CONF_CONSUMABLE_NAME: user_input[CONF_CONSUMABLE_NAME],
-                CONF_LIFETIME_DAYS: user_input[CONF_LIFETIME_DAYS],
-                CONF_WARNING_DAYS: user_input[CONF_WARNING_DAYS],
-                CONF_ICON_NORMAL: user_input.get(CONF_ICON_NORMAL, DEFAULT_ICON_NORMAL),
-                CONF_ICON_WARNING: user_input.get(
-                    CONF_ICON_WARNING, DEFAULT_ICON_WARNING
-                ),
-                CONF_ICON_OVERDUE: user_input.get(
-                    CONF_ICON_OVERDUE, DEFAULT_ICON_OVERDUE
-                ),
-            }
-            self.consumables.append(consumable)
-            return await self.async_step_init()
+            if user_input[CONF_WARNING_DAYS] >= user_input[CONF_LIFETIME_DAYS]:
+                errors[CONF_WARNING_DAYS] = "warning_exceeds_lifetime"
+
+            if not errors:
+                consumable = {
+                    CONF_CONSUMABLE_NAME: user_input[CONF_CONSUMABLE_NAME],
+                    CONF_LIFETIME_DAYS: user_input[CONF_LIFETIME_DAYS],
+                    CONF_WARNING_DAYS: user_input[CONF_WARNING_DAYS],
+                    CONF_ICON_NORMAL: user_input.get(
+                        CONF_ICON_NORMAL, DEFAULT_ICON_NORMAL
+                    ),
+                    CONF_ICON_WARNING: user_input.get(
+                        CONF_ICON_WARNING, DEFAULT_ICON_WARNING
+                    ),
+                    CONF_ICON_OVERDUE: user_input.get(
+                        CONF_ICON_OVERDUE, DEFAULT_ICON_OVERDUE
+                    ),
+                }
+                self.consumables.append(consumable)
+                return await self.async_step_init()
 
         data_schema = vol.Schema(
             {
@@ -241,7 +237,9 @@ class ConsumableTrackerOptionsFlow(config_entries.OptionsFlow):
             }
         )
 
-        return self.async_show_form(step_id="add_consumable", data_schema=data_schema)
+        return self.async_show_form(
+            step_id="add_consumable", data_schema=data_schema, errors=errors
+        )
 
     async def async_step_select_consumable(self, user_input=None):
         """Select which consumable to edit."""
@@ -260,21 +258,29 @@ class ConsumableTrackerOptionsFlow(config_entries.OptionsFlow):
 
     async def async_step_edit_consumable(self, user_input=None):
         """Edit the selected consumable."""
+        errors = {}
         assert self.editing_index is not None
+
         if user_input is not None:
-            self.consumables[self.editing_index] = {
-                CONF_CONSUMABLE_NAME: user_input[CONF_CONSUMABLE_NAME],
-                CONF_LIFETIME_DAYS: user_input[CONF_LIFETIME_DAYS],
-                CONF_WARNING_DAYS: user_input[CONF_WARNING_DAYS],
-                CONF_ICON_NORMAL: user_input.get(CONF_ICON_NORMAL, DEFAULT_ICON_NORMAL),
-                CONF_ICON_WARNING: user_input.get(
-                    CONF_ICON_WARNING, DEFAULT_ICON_WARNING
-                ),
-                CONF_ICON_OVERDUE: user_input.get(
-                    CONF_ICON_OVERDUE, DEFAULT_ICON_OVERDUE
-                ),
-            }
-            return await self.async_step_init()
+            if user_input[CONF_WARNING_DAYS] >= user_input[CONF_LIFETIME_DAYS]:
+                errors[CONF_WARNING_DAYS] = "warning_exceeds_lifetime"
+
+            if not errors:
+                self.consumables[self.editing_index] = {
+                    CONF_CONSUMABLE_NAME: user_input[CONF_CONSUMABLE_NAME],
+                    CONF_LIFETIME_DAYS: user_input[CONF_LIFETIME_DAYS],
+                    CONF_WARNING_DAYS: user_input[CONF_WARNING_DAYS],
+                    CONF_ICON_NORMAL: user_input.get(
+                        CONF_ICON_NORMAL, DEFAULT_ICON_NORMAL
+                    ),
+                    CONF_ICON_WARNING: user_input.get(
+                        CONF_ICON_WARNING, DEFAULT_ICON_WARNING
+                    ),
+                    CONF_ICON_OVERDUE: user_input.get(
+                        CONF_ICON_OVERDUE, DEFAULT_ICON_OVERDUE
+                    ),
+                }
+                return await self.async_step_init()
 
         consumable = self.consumables[self.editing_index]
         data_schema = vol.Schema(
@@ -303,7 +309,9 @@ class ConsumableTrackerOptionsFlow(config_entries.OptionsFlow):
             }
         )
 
-        return self.async_show_form(step_id="edit_consumable", data_schema=data_schema)
+        return self.async_show_form(
+            step_id="edit_consumable", data_schema=data_schema, errors=errors
+        )
 
     async def async_step_delete_consumable(self, user_input=None):
         """Delete a consumable."""
