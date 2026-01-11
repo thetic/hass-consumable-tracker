@@ -7,14 +7,16 @@ Development:
 - Changes should be made on branches and merged to main thru pull requests.
 - Pull requests should only be merged when CI passes.
 - Commits should be small and complete.
-- Don't reference Claude or Anthropic in commit messages.
+- Don't reference Claude or Anthropic in commit messages or pull request
+  descriptions.
+- I'm serious. Don't add "created with Claude Code" annotations and the like to
+  anything. It's annoying noise.
 - Tests and lint (ruff, ty) should pass before committing.
 - Never use `git push --force`. Use `--force-with-lease` instead.
 - Strive for total behavioral coverage, but 100% structural coverage isn't
   worthwhile.
-- Changing the version in `custom_component/consumable_tracker/manifest.json`
-  will generate a new release. It will also drive changes to the `uv.lock`
-  that should also be committed.
+- Changing the version in `custom_components/consumable_tracker/manifest.json`
+  will generate a new release.
 - Versioning follows semantic versioning conventions.
 - Changes to the integration should avoid breaking the
   [blueprint](https://www.home-assistant.io/docs/blueprint/) in

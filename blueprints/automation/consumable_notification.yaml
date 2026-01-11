@@ -46,6 +46,7 @@ variables:
   is_warning: "{{ days_remaining <= warning_days and days_remaining > 0 }}"
   is_depleted: "{{ days_remaining == 0 }}"
   is_normal: "{{ days_remaining > warning_days }}"
+  device_link: "[{{ device_name }}](/config/devices/device/{{ device_id(consumable_sensor) }})"
 
 actions:
   - choose:
@@ -56,7 +57,7 @@ actions:
           - action: persistent_notification.create
             data:
               title: "{{ display_name }} Needs Replacement"
-              message: "{{ display_name }} is due for replacement."
+              message: "{{ device_link }} {{ consumable_name }} is due for replacement."
               notification_id: "{{ notification_id }}"
       - conditions:
           - condition: template
@@ -65,7 +66,7 @@ actions:
           - action: persistent_notification.create
             data:
               title: "{{ display_name }} Replacement Soon"
-              message: "{{ display_name }} has {{ days_remaining }} days remaining."
+              message: "{{ device_link }} {{ consumable_name }} has {{ days_remaining }} days remaining."
               notification_id: "{{ notification_id }}"
       - conditions:
           - condition: template
