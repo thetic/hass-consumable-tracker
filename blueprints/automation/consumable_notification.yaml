@@ -33,7 +33,7 @@ blueprint:
         Select a device running the official Home Assistant app to receive
         notifications. Leave empty to use persistent notifications in the
         Home Assistant UI.
-      default: false
+      default: ""
       selector:
         device:
           filter:
@@ -64,7 +64,7 @@ variables:
   notify_group_target: >-
     {{ notify_group | lower | regex_replace('^notify\\.', '') | replace(' ', '_') }}
   use_notify_group: "{{ notify_group_target | length > 0 }}"
-  use_notify_device: "{{ not use_notify_group and notify_device is defined and notify_device != false }}"
+  use_notify_device: "{{ not use_notify_group and notify_device | length > 0 }}"
   use_persistent: "{{ not use_notify_group and not use_notify_device }}"
   device_name: "{{ device_attr(consumable_sensor, 'name') }}"
   consumable_name: "{{ state_attr(consumable_sensor, 'consumable_name') }}"
