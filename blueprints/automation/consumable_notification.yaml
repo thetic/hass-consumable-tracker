@@ -77,14 +77,13 @@ actions:
               - repeat:
                   for_each: "{{ notify_devices }}"
                   sequence:
-                    - device_id: "{{ repeat.item }}"
-                      domain: mobile_app
-                      type: notify
-                      title: "{{ display_name }} Needs Replacement"
-                      message: "{{ device_name }} {{ consumable_name }} is due for replacement."
+                    - action: "notify.mobile_app_{{ device_attr(repeat.item, 'name') | slugify(separator='_') }}"
                       data:
-                        tag: "{{ notification_id }}"
-                        clickAction: "{{ device_url }}"
+                        title: "{{ display_name }} Needs Replacement"
+                        message: "{{ device_name }} {{ consumable_name }} is due for replacement."
+                        data:
+                          tag: "{{ notification_id }}"
+                          clickAction: "{{ device_url }}"
             else:
               - action: persistent_notification.create
                 data:
@@ -102,14 +101,13 @@ actions:
               - repeat:
                   for_each: "{{ notify_devices }}"
                   sequence:
-                    - device_id: "{{ repeat.item }}"
-                      domain: mobile_app
-                      type: notify
-                      title: "{{ display_name }} Replacement Soon"
-                      message: "{{ device_name }} {{ consumable_name }} has {{ days_remaining }} days remaining."
+                    - action: "notify.mobile_app_{{ device_attr(repeat.item, 'name') | slugify(separator='_') }}"
                       data:
-                        tag: "{{ notification_id }}"
-                        clickAction: "{{ device_url }}"
+                        title: "{{ display_name }} Replacement Soon"
+                        message: "{{ device_name }} {{ consumable_name }} has {{ days_remaining }} days remaining."
+                        data:
+                          tag: "{{ notification_id }}"
+                          clickAction: "{{ device_url }}"
             else:
               - action: persistent_notification.create
                 data:
@@ -127,12 +125,11 @@ actions:
               - repeat:
                   for_each: "{{ notify_devices }}"
                   sequence:
-                    - device_id: "{{ repeat.item }}"
-                      domain: mobile_app
-                      type: notify
-                      message: "clear_notification"
+                    - action: "notify.mobile_app_{{ device_attr(repeat.item, 'name') | slugify(separator='_') }}"
                       data:
-                        tag: "{{ notification_id }}"
+                        message: "clear_notification"
+                        data:
+                          tag: "{{ notification_id }}"
             else:
               - action: persistent_notification.dismiss
                 data:
