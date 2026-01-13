@@ -4,8 +4,7 @@ blueprint:
     Create a notification when a consumable reaches its warning threshold,
     and update it when the consumable is fully depleted. The notification
     is dismissed when the consumable is replaced. Supports persistent
-    notifications (default), mobile app notifications, notification groups,
-    and Android/Fire TV.
+    notifications (default) or mobile app notifications.
   domain: automation
   input:
     consumable_sensor:
@@ -27,26 +26,18 @@ blueprint:
           min: 0
           max: 365
           unit_of_measurement: days
-    notify_device:
-      name: Mobile Device (Optional)
+    notify_devices:
+      name: Mobile Devices (Optional)
       description: >-
-        Select a device running the official Home Assistant app to receive
+        Select devices running the official Home Assistant app to receive
         notifications. Leave empty to use persistent notifications in the
         Home Assistant UI.
-      default: ""
+      default: []
       selector:
         device:
+          multiple: true
           filter:
             - integration: mobile_app
-    notify_group:
-      name: Notification Group or Android/Fire TV (Optional)
-      description: >-
-        The name of the notification group or TV to send notifications to
-        (e.g., "notify.all_phones" or "living_room_tv"). If set, this
-        overrides the Mobile Device selection above.
-      default: ""
-      selector:
-        text:
 
 mode: restart
 
@@ -59,13 +50,8 @@ triggers:
 variables:
   consumable_sensor: !input consumable_sensor
   warning_days_override: !input warning_days_override
-  notify_device: !input notify_device
-  notify_group: !input notify_group
-  notify_group_target: >-
-    {{ notify_group | lower | regex_replace('^notify\\.', '') | replace(' ', '_') }}
-  use_notify_group: "{{ notify_group_target | length > 0 }}"
-  use_notify_device: "{{ not use_notify_group and notify_device | length > 0 }}"
-  use_persistent: "{{ not use_notify_group and not use_notify_device }}"
+  notify_devices: !input notify_devices
+  use_mobile: "{{ notify_devices | length > 0 }}"
   device_name: "{{ device_attr(consumable_sensor, 'name') }}"
   consumable_name: "{{ state_attr(consumable_sensor, 'consumable_name') }}"
   display_name: "{{ device_name }} {{ consumable_name }}"
@@ -84,31 +70,22 @@ actions:
           - condition: template
             value_template: "{{ is_depleted }}"
         sequence:
-          - choose:
-              - conditions:
-                  - condition: template
-                    value_template: "{{ use_notify_group }}"
-                sequence:
-                  - action: "notify.{{ notify_group_target }}"
-                    data:
+          - if:
+              - condition: template
+                value_template: "{{ use_mobile }}"
+            then:
+              - repeat:
+                  for_each: "{{ notify_devices }}"
+                  sequence:
+                    - device_id: "{{ repeat.item }}"
+                      domain: mobile_app
+                      type: notify
                       title: "{{ display_name }} Needs Replacement"
                       message: "{{ device_name }} {{ consumable_name }} is due for replacement."
                       data:
                         tag: "{{ notification_id }}"
                         clickAction: "{{ device_url }}"
-              - conditions:
-                  - condition: template
-                    value_template: "{{ use_notify_device }}"
-                sequence:
-                  - device_id: !input notify_device
-                    domain: mobile_app
-                    type: notify
-                    title: "{{ display_name }} Needs Replacement"
-                    message: "{{ device_name }} {{ consumable_name }} is due for replacement."
-                    data:
-                      tag: "{{ notification_id }}"
-                      clickAction: "{{ device_url }}"
-            default:
+            else:
               - action: persistent_notification.create
                 data:
                   title: "{{ display_name }} Needs Replacement"
@@ -118,31 +95,22 @@ actions:
           - condition: template
             value_template: "{{ is_warning }}"
         sequence:
-          - choose:
-              - conditions:
-                  - condition: template
-                    value_template: "{{ use_notify_group }}"
-                sequence:
-                  - action: "notify.{{ notify_group_target }}"
-                    data:
+          - if:
+              - condition: template
+                value_template: "{{ use_mobile }}"
+            then:
+              - repeat:
+                  for_each: "{{ notify_devices }}"
+                  sequence:
+                    - device_id: "{{ repeat.item }}"
+                      domain: mobile_app
+                      type: notify
                       title: "{{ display_name }} Replacement Soon"
                       message: "{{ device_name }} {{ consumable_name }} has {{ days_remaining }} days remaining."
                       data:
                         tag: "{{ notification_id }}"
                         clickAction: "{{ device_url }}"
-              - conditions:
-                  - condition: template
-                    value_template: "{{ use_notify_device }}"
-                sequence:
-                  - device_id: !input notify_device
-                    domain: mobile_app
-                    type: notify
-                    title: "{{ display_name }} Replacement Soon"
-                    message: "{{ device_name }} {{ consumable_name }} has {{ days_remaining }} days remaining."
-                    data:
-                      tag: "{{ notification_id }}"
-                      clickAction: "{{ device_url }}"
-            default:
+            else:
               - action: persistent_notification.create
                 data:
                   title: "{{ display_name }} Replacement Soon"
@@ -152,27 +120,20 @@ actions:
           - condition: template
             value_template: "{{ is_normal }}"
         sequence:
-          - choose:
-              - conditions:
-                  - condition: template
-                    value_template: "{{ use_notify_group }}"
-                sequence:
-                  - action: "notify.{{ notify_group_target }}"
-                    data:
+          - if:
+              - condition: template
+                value_template: "{{ use_mobile }}"
+            then:
+              - repeat:
+                  for_each: "{{ notify_devices }}"
+                  sequence:
+                    - device_id: "{{ repeat.item }}"
+                      domain: mobile_app
+                      type: notify
                       message: "clear_notification"
                       data:
                         tag: "{{ notification_id }}"
-              - conditions:
-                  - condition: template
-                    value_template: "{{ use_notify_device }}"
-                sequence:
-                  - device_id: !input notify_device
-                    domain: mobile_app
-                    type: notify
-                    message: "clear_notification"
-                    data:
-                      tag: "{{ notification_id }}"
-            default:
+            else:
               - action: persistent_notification.dismiss
                 data:
                   notification_id: "{{ notification_id }}"
