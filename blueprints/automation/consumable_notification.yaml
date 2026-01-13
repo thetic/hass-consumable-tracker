@@ -44,14 +44,18 @@ blueprint:
           multiple: true
           filter:
             - integration: mobile_app
+    trigger_time:
+      name: Trigger Time
+      description: Time of day to check consumable status and send notifications.
+      default: "08:00:00"
+      selector:
+        time:
 
 mode: restart
 
 triggers:
-  - trigger: state
-    entity_id: !input consumable_sensor
   - trigger: time
-    at: "00:01:00"
+    at: !input trigger_time
 
 variables:
   consumable_sensor: !input consumable_sensor
