@@ -2,7 +2,7 @@
 
 [![CI](https://github.com/thetic/hass-consumable-tracker/actions/workflows/ci.yml/badge.svg)](https://github.com/thetic/hass-consumable-tracker/actions/workflows/ci.yml)
 [![codecov](https://codecov.io/gh/thetic/hass-consumable-tracker/graph/badge.svg)](https://codecov.io/gh/thetic/hass-consumable-tracker)
-[![hacs_badge](https://img.shields.io/badge/HACS-Custom-41BDF5.svg)](https://github.com/hacs/integration)
+[![hacs_badge](https://img.shields.io/badge/HACS-Default-41BDF5.svg)](https://github.com/hacs/integration)
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 
 A Home Assistant custom integration to track consumable items that need periodic replacement, such as filters, pads, cartridges, and other maintenance items.
@@ -22,11 +22,9 @@ A Home Assistant custom integration to track consumable items that need periodic
 ### HACS (Recommended)
 
 1. Open HACS in Home Assistant
-2. Click the three dots in the top right corner
-3. Select "Custom repositories"
-4. Add `https://github.com/thetic/hass-consumable-tracker` with category "Integration"
-5. Click "Install"
-6. Restart Home Assistant
+2. Search for "Consumable Tracker"
+3. Click "Download"
+4. Restart Home Assistant
 
 ### Manual Installation
 
