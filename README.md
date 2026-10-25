@@ -107,6 +107,7 @@ The blueprint will:
 - Show a warning notification when days remaining reaches the warning threshold
 - Update to an urgent notification when the consumable is fully depleted
 - Automatically dismiss the notification when the consumable is replaced
+- Do nothing while the sensor is unavailable or has been removed
 
 ## Dashboard Example
 
