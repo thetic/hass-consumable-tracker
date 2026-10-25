@@ -7,6 +7,7 @@ from typing import TYPE_CHECKING
 
 from homeassistant.components.button import ButtonEntity
 from homeassistant.config_entries import ConfigEntry
+from homeassistant.helpers.device_registry import DeviceInfo
 
 if TYPE_CHECKING:
     from homeassistant.core import HomeAssistant
@@ -49,12 +50,12 @@ class ConsumableReplacedButton(ButtonEntity):
         self._consumable = consumable
         self._index = index
         self._attr_unique_id = f"{entry.entry_id}_consumable_{index}_replaced"
-        self._attr_device_info = {
-            "identifiers": {(DOMAIN, entry.entry_id)},
-            "name": entry.data[CONF_DEVICE_NAME],
-            "manufacturer": MANUFACTURER,
-            "model": MODEL,
-        }
+        self._attr_device_info = DeviceInfo(
+            identifiers={(DOMAIN, entry.entry_id)},
+            name=entry.data[CONF_DEVICE_NAME],
+            manufacturer=MANUFACTURER,
+            model=MODEL,
+        )
         self._attr_name = f"Mark {consumable[CONF_CONSUMABLE_NAME]} as replaced"
 
     async def async_press(self) -> None:
