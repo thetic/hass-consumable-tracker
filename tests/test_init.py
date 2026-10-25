@@ -1,11 +1,17 @@
 """Tests for the Consumable Tracker integration initialization."""
 
+import asyncio
+from datetime import date, timedelta
+from typing import Any
+from unittest.mock import patch
+
 import pytest
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers import entity_registry as er
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
+from custom_components.consumable_tracker import date as date_platform
 from custom_components.consumable_tracker.const import (
     CONF_CONSUMABLE_NAME,
     CONF_CONSUMABLES,
@@ -245,3 +251,37 @@ async def test_consumable_tracker_device_is_not_attached(
     assert device is not None
     assert entity_device_ids(hass, entry) == {device.id}
     assert "can't attach its consumables to another Consumable Tracker" in caplog.text
+
+
+async def test_sensor_follows_date_set_up_after_it(hass: HomeAssistant) -> None:
+    """Test that a sensor updates on date changes however setup is ordered.
+
+    Platforms set up concurrently, and a sensor added before its date entity is
+    registered could never subscribe to it, leaving it to catch up only when
+    polled.
+    """
+    original_setup = date_platform.async_setup_entry
+
+    async def slow_date_setup(*args: Any) -> None:
+        await asyncio.sleep(0.01)
+        await original_setup(*args)
+
+    entry = make_entry(hass)
+    with patch.object(date_platform, "async_setup_entry", slow_date_setup):
+        await hass.config_entries.async_setup(entry.entry_id)
+        await hass.async_block_till_done()
+
+    await hass.services.async_call(
+        "date",
+        "set_value",
+        {
+            "entity_id": "date.test_device_test_filter_last_replaced",
+            "date": (date.today() - timedelta(days=30)).isoformat(),
+        },
+        blocking=True,
+    )
+    await hass.async_block_till_done()
+
+    state = hass.states.get("sensor.test_device_test_filter_days_remaining")
+    assert state is not None
+    assert state.state == "60"

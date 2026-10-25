@@ -12,7 +12,11 @@ from .const import CONF_DEVICE_ID, CONF_DEVICE_NAME, DOMAIN, MANUFACTURER, MODEL
 
 _LOGGER = logging.getLogger(__name__)
 
-PLATFORMS = ["date", "sensor", "button"]
+# Sensors look up their date entities in the entity registry when they're added,
+# so the date platform is set up before the platforms that depend on it.
+DATE_PLATFORMS = ["date"]
+DEPENDENT_PLATFORMS = ["sensor", "button"]
+PLATFORMS = DATE_PLATFORMS + DEPENDENT_PLATFORMS
 
 type ConsumableTrackerConfigEntry = ConfigEntry[dr.AnyDeviceEntry | None]
 
@@ -68,7 +72,8 @@ async def async_setup_entry(
             model=MODEL,
         )
 
-    await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
+    await hass.config_entries.async_forward_entry_setups(entry, DATE_PLATFORMS)
+    await hass.config_entries.async_forward_entry_setups(entry, DEPENDENT_PLATFORMS)
 
     if entry.runtime_data is not None:
         # The entities moved to the linked device, so remove the entry's own
