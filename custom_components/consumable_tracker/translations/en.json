@@ -3,9 +3,14 @@
     "step": {
       "user": {
         "title": "Add Device",
-        "description": "Create a device to track multiple consumables.\n\n{example}",
+        "description": "Track consumables for a device. Pick an existing device to attach the consumables to it, or leave it empty to create a new device.\n\n{example}",
         "data": {
-          "device_name": "Device Name"
+          "device_name": "Device Name",
+          "device_id": "Existing device"
+        },
+        "data_description": {
+          "device_name": "Name of this tracker. Also used as the device name when no existing device is picked.",
+          "device_id": "Attach the consumables to this device instead of creating a new one."
         }
       },
       "add_consumable": {
@@ -23,7 +28,8 @@
       }
     },
     "error": {
-      "warning_exceeds_lifetime": "Warning threshold must be less than lifetime"
+      "warning_exceeds_lifetime": "Warning threshold must be less than lifetime",
+      "consumable_tracker_device": "Pick a device from another integration, not a Consumable Tracker device"
     }
   },
   "options": {
@@ -68,10 +74,21 @@
         "data": {
           "consumable": "Consumable to delete"
         }
+      },
+      "select_device": {
+        "title": "Change Device",
+        "description": "Pick an existing device to attach the consumables to, or clear the field to give them their own device.",
+        "data": {
+          "device_id": "Existing device"
+        },
+        "data_description": {
+          "device_id": "Attach the consumables to this device instead of their own."
+        }
       }
     },
     "error": {
-      "warning_exceeds_lifetime": "Warning threshold must be less than lifetime"
+      "warning_exceeds_lifetime": "Warning threshold must be less than lifetime",
+      "consumable_tracker_device": "Pick a device from another integration, not a Consumable Tracker device"
     }
   }
 }

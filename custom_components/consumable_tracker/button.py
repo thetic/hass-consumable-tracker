@@ -6,26 +6,23 @@ from datetime import date
 from typing import TYPE_CHECKING
 
 from homeassistant.components.button import ButtonEntity
-from homeassistant.config_entries import ConfigEntry
-from homeassistant.helpers.device_registry import DeviceInfo
 
 if TYPE_CHECKING:
     from homeassistant.core import HomeAssistant
     from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
+    from . import ConsumableTrackerConfigEntry
+
 from .const import (
     CONF_CONSUMABLE_NAME,
     CONF_CONSUMABLES,
-    CONF_DEVICE_NAME,
-    DOMAIN,
-    MANUFACTURER,
-    MODEL,
 )
+from .entity import ConsumableTrackerEntity
 
 
 async def async_setup_entry(
     hass: HomeAssistant,
-    entry: ConfigEntry,
+    entry: ConsumableTrackerConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Set up the button platform."""
@@ -38,24 +35,17 @@ async def async_setup_entry(
     async_add_entities(entities)
 
 
-class ConsumableReplacedButton(ButtonEntity):
+class ConsumableReplacedButton(ConsumableTrackerEntity, ButtonEntity):
     """Button to mark consumable as replaced."""
 
     _attr_icon = "mdi:restore"
-    _attr_has_entity_name = True
 
-    def __init__(self, entry: ConfigEntry, consumable: dict, index: int) -> None:
+    def __init__(
+        self, entry: ConsumableTrackerConfigEntry, consumable: dict, index: int
+    ) -> None:
         """Initialize the button."""
-        self._entry = entry
-        self._consumable = consumable
-        self._index = index
+        super().__init__(entry, consumable, index)
         self._attr_unique_id = f"{entry.entry_id}_consumable_{index}_replaced"
-        self._attr_device_info = DeviceInfo(
-            identifiers={(DOMAIN, entry.entry_id)},
-            name=entry.data[CONF_DEVICE_NAME],
-            manufacturer=MANUFACTURER,
-            model=MODEL,
-        )
         self._attr_name = f"Mark {consumable[CONF_CONSUMABLE_NAME]} as replaced"
 
     async def async_press(self) -> None:

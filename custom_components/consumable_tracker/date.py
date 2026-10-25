@@ -6,8 +6,6 @@ from datetime import date
 from typing import TYPE_CHECKING
 
 from homeassistant.components.date import DateEntity
-from homeassistant.config_entries import ConfigEntry
-from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity import EntityCategory
 from homeassistant.helpers.restore_state import RestoreEntity
 
@@ -15,19 +13,18 @@ if TYPE_CHECKING:
     from homeassistant.core import HomeAssistant
     from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
+    from . import ConsumableTrackerConfigEntry
+
 from .const import (
     CONF_CONSUMABLE_NAME,
     CONF_CONSUMABLES,
-    CONF_DEVICE_NAME,
-    DOMAIN,
-    MANUFACTURER,
-    MODEL,
 )
+from .entity import ConsumableTrackerEntity
 
 
 async def async_setup_entry(
     hass: HomeAssistant,
-    entry: ConfigEntry,
+    entry: ConsumableTrackerConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Set up the date platform."""
@@ -40,24 +37,17 @@ async def async_setup_entry(
     async_add_entities(entities)
 
 
-class ConsumableLastReplacedDate(RestoreEntity, DateEntity):
+class ConsumableLastReplacedDate(ConsumableTrackerEntity, RestoreEntity, DateEntity):
     """Date entity for when consumable was last replaced."""
 
-    _attr_has_entity_name = True
     _attr_entity_category = EntityCategory.DIAGNOSTIC
 
-    def __init__(self, entry: ConfigEntry, consumable: dict, index: int) -> None:
+    def __init__(
+        self, entry: ConsumableTrackerConfigEntry, consumable: dict, index: int
+    ) -> None:
         """Initialize the date entity."""
-        self._entry = entry
-        self._consumable = consumable
-        self._index = index
+        super().__init__(entry, consumable, index)
         self._attr_unique_id = f"{entry.entry_id}_consumable_{index}_last_replaced"
-        self._attr_device_info = DeviceInfo(
-            identifiers={(DOMAIN, entry.entry_id)},
-            name=entry.data[CONF_DEVICE_NAME],
-            manufacturer=MANUFACTURER,
-            model=MODEL,
-        )
         self._attr_name = f"{consumable[CONF_CONSUMABLE_NAME]} last replaced"
         self._attr_native_value = None
 

@@ -6,10 +6,8 @@ from datetime import date, datetime, timedelta
 from typing import TYPE_CHECKING
 
 from homeassistant.components.sensor import SensorEntity
-from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import callback
 from homeassistant.helpers import entity_registry as er
-from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.event import async_track_state_change_event
 
 if TYPE_CHECKING:
@@ -17,24 +15,24 @@ if TYPE_CHECKING:
     from homeassistant.helpers.entity_platform import AddEntitiesCallback
     from homeassistant.helpers.event import EventStateChangedData
 
+    from . import ConsumableTrackerConfigEntry
+
 from .const import (
     CONF_CONSUMABLE_NAME,
     CONF_CONSUMABLES,
-    CONF_DEVICE_NAME,
     CONF_ICON_NORMAL,
     CONF_ICON_OVERDUE,
     CONF_ICON_WARNING,
     CONF_LIFETIME_DAYS,
     CONF_WARNING_DAYS,
     DOMAIN,
-    MANUFACTURER,
-    MODEL,
 )
+from .entity import ConsumableTrackerEntity
 
 
 async def async_setup_entry(
     hass: HomeAssistant,
-    entry: ConfigEntry,
+    entry: ConsumableTrackerConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Set up the sensor platform."""
@@ -47,24 +45,17 @@ async def async_setup_entry(
     async_add_entities(entities)
 
 
-class ConsumableTrackerSensor(SensorEntity):
+class ConsumableTrackerSensor(ConsumableTrackerEntity, SensorEntity):
     """Representation of a Consumable Tracker sensor."""
 
     _attr_native_unit_of_measurement = "days"
-    _attr_has_entity_name = True
 
-    def __init__(self, entry: ConfigEntry, consumable: dict, index: int) -> None:
+    def __init__(
+        self, entry: ConsumableTrackerConfigEntry, consumable: dict, index: int
+    ) -> None:
         """Initialize the sensor."""
-        self._entry = entry
-        self._consumable = consumable
-        self._index = index
+        super().__init__(entry, consumable, index)
         self._attr_unique_id = f"{entry.entry_id}_consumable_{index}"
-        self._attr_device_info = DeviceInfo(
-            identifiers={(DOMAIN, entry.entry_id)},
-            name=entry.data[CONF_DEVICE_NAME],
-            manufacturer=MANUFACTURER,
-            model=MODEL,
-        )
         self._attr_name = f"{consumable[CONF_CONSUMABLE_NAME]} days remaining"
         self._date_unique_id = f"{entry.entry_id}_consumable_{index}_last_replaced"
         self._datetime_entity_id: str | None = None

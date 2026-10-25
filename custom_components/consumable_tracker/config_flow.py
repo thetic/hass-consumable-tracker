@@ -7,15 +7,20 @@ from typing import TYPE_CHECKING
 import probatio as vol
 from homeassistant import config_entries
 from homeassistant.core import callback
+from homeassistant.helpers import device_registry as dr
+from homeassistant.helpers.selector import DeviceSelector
 
 if TYPE_CHECKING:
     from typing import Any
 
     from homeassistant.config_entries import ConfigFlowResult
+    from homeassistant.core import HomeAssistant
 
+from . import is_consumable_tracker_device
 from .const import (
     CONF_CONSUMABLE_NAME,
     CONF_CONSUMABLES,
+    CONF_DEVICE_ID,
     CONF_DEVICE_NAME,
     CONF_ICON_NORMAL,
     CONF_ICON_OVERDUE,
@@ -43,6 +48,30 @@ def _build_consumable_dict(user_input: dict) -> dict:
     }
 
 
+def _validate_device(hass: HomeAssistant, device_id: str | None) -> dict[str, str]:
+    """Validate the device to attach consumables to and return errors dict."""
+    errors: dict[str, str] = {}
+    if device_id is None:
+        return errors
+    device = dr.async_get(hass).async_get(device_id)
+    if device is not None and is_consumable_tracker_device(device):
+        errors[CONF_DEVICE_ID] = "consumable_tracker_device"
+    return errors
+
+
+def _build_entry_data(
+    device_name: str, consumables: list[dict[str, object]], device_id: str | None
+) -> dict[str, object]:
+    """Build the config entry data."""
+    data: dict[str, object] = {
+        CONF_DEVICE_NAME: device_name,
+        CONF_CONSUMABLES: consumables,
+    }
+    if device_id is not None:
+        data[CONF_DEVICE_ID] = device_id
+    return data
+
+
 def _validate_consumable_input(user_input: dict) -> dict[str, str]:
     """Validate consumable input and return errors dict."""
     errors: dict[str, str] = {}
@@ -59,22 +88,28 @@ class ConsumableTrackerConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     def __init__(self) -> None:
         """Initialize the config flow."""
         self.device_name: str | None = None
+        self.device_id: str | None = None
         self.consumables: list[dict[str, object]] = []
 
     async def async_step_user(
         self,
         user_input: dict[str, Any] | None = None,
     ) -> ConfigFlowResult:
-        """Handle the initial step - device name."""
-        errors = {}
+        """Handle the initial step - device name and optional existing device."""
+        errors: dict[str, str] = {}
 
         if user_input is not None:
-            self.device_name = user_input[CONF_DEVICE_NAME]
-            return await self.async_step_add_consumable()
+            errors = _validate_device(self.hass, user_input.get(CONF_DEVICE_ID))
+
+            if not errors:
+                self.device_name = user_input[CONF_DEVICE_NAME]
+                self.device_id = user_input.get(CONF_DEVICE_ID)
+                return await self.async_step_add_consumable()
 
         data_schema = vol.Schema(
             {
                 vol.Required(CONF_DEVICE_NAME): str,
+                vol.Optional(CONF_DEVICE_ID): DeviceSelector(),
             }
         )
 
@@ -111,10 +146,9 @@ class ConsumableTrackerConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
                 return self.async_create_entry(
                     title=self.device_name,
-                    data={
-                        CONF_DEVICE_NAME: self.device_name,
-                        CONF_CONSUMABLES: self.consumables,
-                    },
+                    data=_build_entry_data(
+                        self.device_name, self.consumables, self.device_id
+                    ),
                 )
 
         data_schema = vol.Schema(
@@ -163,6 +197,7 @@ class ConsumableTrackerOptionsFlow(config_entries.OptionsFlow):
         self.consumables: list[dict[str, object]] = list(
             config_entry.data.get(CONF_CONSUMABLES, [])
         )
+        self.device_id: str | None = config_entry.data.get(CONF_DEVICE_ID)
         self.editing_index: int | None = None
 
     async def async_step_init(
@@ -178,14 +213,17 @@ class ConsumableTrackerOptionsFlow(config_entries.OptionsFlow):
                 return await self.async_step_select_consumable()
             elif action == "delete":
                 return await self.async_step_delete_consumable()
+            elif action == "device":
+                return await self.async_step_select_device()
             elif action == "done":
                 # Save and finish
                 self.hass.config_entries.async_update_entry(
                     self._config_entry,
-                    data={
-                        CONF_DEVICE_NAME: self._config_entry.data[CONF_DEVICE_NAME],
-                        CONF_CONSUMABLES: self.consumables,
-                    },
+                    data=_build_entry_data(
+                        self._config_entry.data[CONF_DEVICE_NAME],
+                        self.consumables,
+                        self.device_id,
+                    ),
                 )
                 return self.async_create_entry(title="", data={})
 
@@ -205,6 +243,7 @@ class ConsumableTrackerOptionsFlow(config_entries.OptionsFlow):
                             "add": "Add new consumable",
                             "edit": "Edit existing consumable",
                             "delete": "Delete consumable",
+                            "device": "Change device",
                             "done": "Save and finish",
                         }
                     )
@@ -333,4 +372,28 @@ class ConsumableTrackerOptionsFlow(config_entries.OptionsFlow):
         return self.async_show_form(
             step_id="delete_consumable",
             data_schema=vol.Schema({vol.Required("consumable"): vol.In(choices)}),
+        )
+
+    async def async_step_select_device(
+        self,
+        user_input: dict[str, Any] | None = None,
+    ) -> ConfigFlowResult:
+        """Select an existing device to attach the consumables to."""
+        errors: dict[str, str] = {}
+
+        if user_input is not None:
+            errors = _validate_device(self.hass, user_input.get(CONF_DEVICE_ID))
+
+            if not errors:
+                self.device_id = user_input.get(CONF_DEVICE_ID)
+                return await self.async_step_init()
+
+        data_schema = vol.Schema({vol.Optional(CONF_DEVICE_ID): DeviceSelector()})
+        if self.device_id is not None:
+            data_schema = self.add_suggested_values_to_schema(
+                data_schema, {CONF_DEVICE_ID: self.device_id}
+            )
+
+        return self.async_show_form(
+            step_id="select_device", data_schema=data_schema, errors=errors
         )

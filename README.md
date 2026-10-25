@@ -40,22 +40,30 @@ Requires Home Assistant 2026.9 or newer.
 2. Click **Add Integration**
 3. Search for "Consumable Tracker"
 4. Enter a device name (e.g., "HVAC System")
-5. Add your first consumable:
+5. Optionally pick an **Existing device** to attach the consumables to, such as
+   the air purifier whose filters you're tracking. Leave it empty to create a
+   new device for them.
+6. Add your first consumable:
    - **Name**: e.g., "Furnace Filter"
    - **Lifetime (days)**: How long the consumable lasts (1-730 days)
    - **Warning threshold (days)**: When to start warning (0-365 days)
    - **Icons** (optional): Custom icons for normal, warning, and overdue states
-6. Optionally add more consumables to the same device
-7. Click **Submit**
+7. Optionally add more consumables to the same device
+8. Click **Submit**
 
 ### Managing Consumables
 
-After setup, you can add, edit, or delete consumables:
+After setup, you can add, edit, or delete consumables, or change the device
+they're attached to:
 
 1. Go to **Settings** > **Devices & Services**
 2. Find your Consumable Tracker device
 3. Click **Configure**
-4. Choose to add, edit, or delete consumables
+4. Choose to add, edit, or delete consumables, or **Change device**
+
+Attaching consumables to an existing device removes the device Consumable
+Tracker created for them. The entities keep their IDs and history. Clearing
+the device gives them their own device again.
 
 ## Entities Created
 
