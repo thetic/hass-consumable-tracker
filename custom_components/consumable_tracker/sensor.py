@@ -9,6 +9,7 @@ from homeassistant.components.sensor import SensorEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import callback
 from homeassistant.helpers import entity_registry as er
+from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.event import async_track_state_change_event
 
 if TYPE_CHECKING:
@@ -58,12 +59,12 @@ class ConsumableTrackerSensor(SensorEntity):
         self._consumable = consumable
         self._index = index
         self._attr_unique_id = f"{entry.entry_id}_consumable_{index}"
-        self._attr_device_info = {
-            "identifiers": {(DOMAIN, entry.entry_id)},
-            "name": entry.data[CONF_DEVICE_NAME],
-            "manufacturer": MANUFACTURER,
-            "model": MODEL,
-        }
+        self._attr_device_info = DeviceInfo(
+            identifiers={(DOMAIN, entry.entry_id)},
+            name=entry.data[CONF_DEVICE_NAME],
+            manufacturer=MANUFACTURER,
+            model=MODEL,
+        )
         self._attr_name = f"{consumable[CONF_CONSUMABLE_NAME]} days remaining"
         self._date_unique_id = f"{entry.entry_id}_consumable_{index}_last_replaced"
         self._datetime_entity_id: str | None = None

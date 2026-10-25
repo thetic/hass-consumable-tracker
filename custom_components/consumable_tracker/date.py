@@ -7,6 +7,7 @@ from typing import TYPE_CHECKING
 
 from homeassistant.components.date import DateEntity
 from homeassistant.config_entries import ConfigEntry
+from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity import EntityCategory
 from homeassistant.helpers.restore_state import RestoreEntity
 
@@ -51,12 +52,12 @@ class ConsumableLastReplacedDate(RestoreEntity, DateEntity):
         self._consumable = consumable
         self._index = index
         self._attr_unique_id = f"{entry.entry_id}_consumable_{index}_last_replaced"
-        self._attr_device_info = {
-            "identifiers": {(DOMAIN, entry.entry_id)},
-            "name": entry.data[CONF_DEVICE_NAME],
-            "manufacturer": MANUFACTURER,
-            "model": MODEL,
-        }
+        self._attr_device_info = DeviceInfo(
+            identifiers={(DOMAIN, entry.entry_id)},
+            name=entry.data[CONF_DEVICE_NAME],
+            manufacturer=MANUFACTURER,
+            model=MODEL,
+        )
         self._attr_name = f"{consumable[CONF_CONSUMABLE_NAME]} last replaced"
         self._attr_native_value = None
 

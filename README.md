@@ -19,6 +19,8 @@ A Home Assistant custom integration to track consumable items that need periodic
 
 ## Installation
 
+Requires Home Assistant 2026.9 or newer.
+
 ### HACS (Recommended)
 
 1. Open HACS in Home Assistant
