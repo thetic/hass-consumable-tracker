@@ -6,6 +6,7 @@ from datetime import date, datetime, timedelta
 from typing import TYPE_CHECKING
 
 from homeassistant.components.sensor import SensorEntity
+from homeassistant.const import STATE_UNAVAILABLE
 from homeassistant.core import callback
 from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.event import async_track_state_change_event
@@ -111,6 +112,15 @@ class ConsumableTrackerSensor(ConsumableTrackerEntity, SensorEntity):
             except (ValueError, TypeError):
                 pass
         return None
+
+    @property
+    def available(self) -> bool:
+        """Return whether the date entity the value is based on is available."""
+        date_entity_id = self._get_date_entity_id()
+        if not date_entity_id:
+            return True
+        state = self.hass.states.get(date_entity_id)
+        return state is None or state.state != STATE_UNAVAILABLE
 
     @property
     def native_value(self) -> int:

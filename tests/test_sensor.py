@@ -3,7 +3,11 @@
 from datetime import date, timedelta
 
 from freezegun import freeze_time
-from homeassistant.core import HomeAssistant
+from homeassistant.core import Event, HomeAssistant, callback
+from homeassistant.helpers.event import (
+    EventStateChangedData,
+    async_track_state_change_event,
+)
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.consumable_tracker.const import (
@@ -194,3 +198,63 @@ async def test_sensor_invalid_date_state(hass: HomeAssistant) -> None:
     assert entity is not None
     # Should fall back to full lifetime
     assert entity.native_value == 90
+
+
+async def test_sensor_never_reports_lifetime_during_reload(
+    hass: HomeAssistant,
+) -> None:
+    """Test that reloading doesn't briefly record the full lifetime."""
+    entry = await setup_integration(hass)
+    sensor_entity_id = "sensor.test_device_test_filter_days_remaining"
+
+    await hass.services.async_call(
+        "date",
+        "set_value",
+        {
+            "entity_id": "date.test_device_test_filter_last_replaced",
+            "date": (date.today() - timedelta(days=30)).isoformat(),
+        },
+        blocking=True,
+    )
+    await hass.async_block_till_done()
+    state = hass.states.get(sensor_entity_id)
+    assert state is not None
+    assert state.state == "60"
+
+    recorded: list[str] = []
+
+    @callback
+    def record(event: Event[EventStateChangedData]) -> None:
+        if (new_state := event.data["new_state"]) is not None:
+            recorded.append(new_state.state)
+
+    async_track_state_change_event(hass, [sensor_entity_id], record)
+
+    assert await hass.config_entries.async_reload(entry.entry_id)
+    await hass.async_block_till_done()
+
+    assert "90" not in recorded
+    assert recorded[-1] == "60"
+
+
+async def test_sensor_unavailable_while_date_unavailable(
+    hass: HomeAssistant,
+) -> None:
+    """Test that the sensor follows its date entity becoming unavailable."""
+    await setup_integration(hass)
+    date_entity_id = "date.test_device_test_filter_last_replaced"
+    sensor_entity_id = "sensor.test_device_test_filter_days_remaining"
+
+    hass.states.async_set(date_entity_id, "unavailable")
+    await hass.async_block_till_done()
+
+    state = hass.states.get(sensor_entity_id)
+    assert state is not None
+    assert state.state == "unavailable"
+
+    hass.states.async_set(date_entity_id, date.today().isoformat())
+    await hass.async_block_till_done()
+
+    state = hass.states.get(sensor_entity_id)
+    assert state is not None
+    assert state.state == "90"
