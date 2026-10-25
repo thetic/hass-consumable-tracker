@@ -6,13 +6,13 @@ build-backend = "hatchling.build"
 name = "hass-consumable-tracker"
 dynamic = ["version"]
 description = "Home Assistant custom integration for tracking consumable items"
-requires-python = ">=3.13.2"
+requires-python = ">=3.14.2"
 
 [dependency-groups]
 dev = [
     "ruff>=0.9.4",
     "ty>=0.0.10",
-    "pytest-homeassistant-custom-component>=0.13.0",
+    "pytest-homeassistant-custom-component>=0.13.375",
 ]
 
 [tool.ruff]
@@ -42,6 +42,7 @@ ignore = [
 known-first-party = ["custom_components.consumable_tracker"]
 
 [tool.pytest]
+pythonpath = ["."]
 asyncio_mode = "auto"
 asyncio_default_fixture_loop_scope = "function"
 addopts = ["--cov=custom_components.consumable_tracker", "--cov-report=term-missing"]
