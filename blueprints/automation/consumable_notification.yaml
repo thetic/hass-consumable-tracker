@@ -75,6 +75,12 @@ variables:
   device_link: "[{{ device_name }}](/config/devices/device/{{ device_id(consumable_sensor) }})"
   device_url: "/config/devices/device/{{ device_id(consumable_sensor) }}"
 
+# A missing or unavailable sensor would otherwise read as 0 days remaining
+# and trigger a depleted notification.
+conditions:
+  - condition: template
+    value_template: "{{ states(consumable_sensor) | is_number }}"
+
 actions:
   - choose:
       - conditions:
