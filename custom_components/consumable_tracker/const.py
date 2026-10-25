@@ -6,6 +6,7 @@ MANUFACTURER = "Consumable Tracker"
 MODEL = "Multi-Consumable Device"
 
 CONF_DEVICE_NAME = "device_name"
+CONF_DEVICE_ID = "device_id"
 CONF_CONSUMABLES = "consumables"
 CONF_CONSUMABLE_NAME = "consumable_name"
 CONF_LIFETIME_DAYS = "lifetime_days"
