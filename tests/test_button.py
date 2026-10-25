@@ -1,6 +1,6 @@
 """Tests for the Consumable Tracker button entity."""
 
-from datetime import date
+from datetime import date, timedelta
 
 from freezegun import freeze_time
 from homeassistant.core import HomeAssistant
@@ -83,18 +83,24 @@ async def test_button_press_sets_date_to_today(hass: HomeAssistant) -> None:
 
 @freeze_time("2026-01-15")
 async def test_button_press_updates_sensor(hass: HomeAssistant) -> None:
-    """Test pressing button updates the sensor value."""
+    """Test pressing the button immediately updates the sensor state."""
     await setup_integration(hass)
-
-    # Get sensor - should show full lifetime initially
     sensor_entity_id = "sensor.test_device_test_filter_days_remaining"
-    sensor_entity = hass.data["entity_components"]["sensor"].get_entity(
-        sensor_entity_id
-    )
-    assert sensor_entity is not None
-    assert sensor_entity.native_value == 90
 
-    # Press the button
+    await hass.services.async_call(
+        "date",
+        "set_value",
+        {
+            "entity_id": "date.test_device_test_filter_last_replaced",
+            "date": (date.today() - timedelta(days=30)).isoformat(),
+        },
+        blocking=True,
+    )
+    await hass.async_block_till_done()
+    state = hass.states.get(sensor_entity_id)
+    assert state is not None
+    assert state.state == "60"
+
     await hass.services.async_call(
         "button",
         "press",
@@ -103,5 +109,7 @@ async def test_button_press_updates_sensor(hass: HomeAssistant) -> None:
     )
     await hass.async_block_till_done()
 
-    # Sensor should now show 90 days (just replaced today)
-    assert sensor_entity.native_value == 90
+    # Replaced today, so the full lifetime remains
+    state = hass.states.get(sensor_entity_id)
+    assert state is not None
+    assert state.state == "90"
