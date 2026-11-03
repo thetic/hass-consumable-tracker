@@ -63,6 +63,11 @@ class ConsumableLastReplacedDate(ConsumableTrackerEntity, RestoreEntity, DateEnt
             except (ValueError, TypeError):
                 self._attr_native_value = None
 
+        if self._attr_native_value is None:
+            # Without a date the sensor would stay at the full lifetime forever,
+            # so a new consumable starts counting down from today
+            self._attr_native_value = date.today()
+
     async def async_set_value(self, value: date) -> None:
         """Update the date."""
         self._attr_native_value = value
