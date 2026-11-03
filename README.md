@@ -101,7 +101,7 @@ This integration includes a blueprint that creates persistent notifications when
 
 [![Open your Home Assistant instance and show the blueprint import dialog with a specific blueprint pre-filled.](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2Fthetic%2Fhass-consumable-tracker%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fconsumable_notification.yaml)
 
-Click the badge above to import, then create an automation from the blueprint for each consumable you want to monitor.
+Click the badge above to import, then create an automation from the blueprint. One automation can monitor several consumables: pick one under **Consumable Sensor** and add any others under **Additional Consumable Sensors**.
 
 <details>
 <summary>Manual import instructions</summary>
@@ -109,7 +109,7 @@ Click the badge above to import, then create an automation from the blueprint fo
 1. Go to **Settings** > **Automations & Scenes** > **Blueprints**
 2. Click **Import Blueprint**
 3. Enter: `https://github.com/thetic/hass-consumable-tracker/blob/main/blueprints/automation/consumable_notification.yaml`
-4. Create an automation from the blueprint for each consumable you want to monitor
+4. Create an automation from the blueprint
 
 </details>
 
@@ -117,7 +117,7 @@ The blueprint will:
 - Show a warning notification when days remaining reaches the warning threshold
 - Update to an urgent notification when the consumable is fully depleted
 - Automatically dismiss the notification when the consumable is replaced
-- Do nothing while the sensor is unavailable or has been removed
+- Do nothing for a sensor that is unavailable or has been removed
 
 ## Dashboard Example
 
