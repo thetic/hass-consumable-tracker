@@ -15,6 +15,18 @@ blueprint:
           filter:
             - domain: sensor
               integration: consumable_tracker
+    additional_consumable_sensors:
+      name: Additional Consumable Sensors
+      description: >-
+        Optionally monitor more consumable tracker sensors with this same
+        automation. Each sensor gets its own notification.
+      default: []
+      selector:
+        entity:
+          multiple: true
+          filter:
+            - domain: sensor
+              integration: consumable_tracker
     warning_days_override:
       name: Warning Days Override
       description: >-
@@ -59,104 +71,111 @@ triggers:
 
 variables:
   consumable_sensor: !input consumable_sensor
+  additional_consumable_sensors: !input additional_consumable_sensors
   warning_days_override: !input warning_days_override
   persistent_notification: !input persistent_notification
   notify_devices: !input notify_devices
   use_mobile: "{{ notify_devices | length > 0 }}"
-  device_name: "{{ device_attr(consumable_sensor, 'name') }}"
-  consumable_name: "{{ state_attr(consumable_sensor, 'consumable_name') }}"
-  display_name: "{{ device_name }} {{ consumable_name }}"
-  days_remaining: "{{ states(consumable_sensor) | int(0) }}"
-  warning_days: "{{ warning_days_override if warning_days_override > 0 else state_attr(consumable_sensor, 'warning_days') | int(0) }}"
-  notification_id: "consumable_{{ consumable_sensor | replace('.', '_') }}"
-  is_warning: "{{ days_remaining <= warning_days and days_remaining > 0 }}"
-  is_depleted: "{{ days_remaining == 0 }}"
-  is_normal: "{{ days_remaining > warning_days }}"
-  device_link: "[{{ device_name }}](/config/devices/device/{{ device_id(consumable_sensor) }})"
-  device_url: "/config/devices/device/{{ device_id(consumable_sensor) }}"
+  sensors: "{{ [consumable_sensor] + additional_consumable_sensors }}"
 
 # A missing or unavailable sensor would otherwise read as 0 days remaining
-# and trigger a depleted notification.
-conditions:
-  - condition: template
-    value_template: "{{ states(consumable_sensor) | is_number }}"
-
+# and trigger a depleted notification, so such sensors are skipped.
 actions:
-  - choose:
-      - conditions:
-          - condition: template
-            value_template: "{{ is_depleted }}"
-        sequence:
-          - if:
-              - condition: template
-                value_template: "{{ persistent_notification }}"
-            then:
-              - action: persistent_notification.create
-                data:
-                  title: "{{ display_name }} Needs Replacement"
-                  message: "{{ device_link }} {{ consumable_name }} is due for replacement."
-                  notification_id: "{{ notification_id }}"
-          - if:
-              - condition: template
-                value_template: "{{ use_mobile }}"
-            then:
-              - repeat:
-                  for_each: "{{ notify_devices }}"
+  - repeat:
+      for_each: "{{ sensors }}"
+      sequence:
+        - variables:
+            consumable_sensor: "{{ repeat.item }}"
+            device_name: "{{ device_attr(consumable_sensor, 'name') }}"
+            consumable_name: "{{ state_attr(consumable_sensor, 'consumable_name') }}"
+            display_name: "{{ device_name }} {{ consumable_name }}"
+            days_remaining: "{{ states(consumable_sensor) | int(0) }}"
+            warning_days: "{{ warning_days_override if warning_days_override > 0 else state_attr(consumable_sensor, 'warning_days') | int(0) }}"
+            notification_id: "consumable_{{ consumable_sensor | replace('.', '_') }}"
+            is_warning: "{{ days_remaining <= warning_days and days_remaining > 0 }}"
+            is_depleted: "{{ days_remaining == 0 }}"
+            is_normal: "{{ days_remaining > warning_days }}"
+            device_link: "[{{ device_name }}](/config/devices/device/{{ device_id(consumable_sensor) }})"
+            device_url: "/config/devices/device/{{ device_id(consumable_sensor) }}"
+        - if:
+            - condition: template
+              value_template: "{{ states(consumable_sensor) | is_number }}"
+          then:
+            - choose:
+                - conditions:
+                    - condition: template
+                      value_template: "{{ is_depleted }}"
                   sequence:
-                    - action: "notify.mobile_app_{{ device_attr(repeat.item, 'name') | slugify(separator='_') }}"
-                      data:
-                        title: "{{ display_name }} Needs Replacement"
-                        message: "{{ device_name }} {{ consumable_name }} is due for replacement."
-                        data:
-                          tag: "{{ notification_id }}"
-                          clickAction: "{{ device_url }}"
-      - conditions:
-          - condition: template
-            value_template: "{{ is_warning }}"
-        sequence:
-          - if:
-              - condition: template
-                value_template: "{{ persistent_notification }}"
-            then:
-              - action: persistent_notification.create
-                data:
-                  title: "{{ display_name }} Replacement Soon"
-                  message: "{{ device_link }} {{ consumable_name }} has {{ days_remaining }} days remaining."
-                  notification_id: "{{ notification_id }}"
-          - if:
-              - condition: template
-                value_template: "{{ use_mobile }}"
-            then:
-              - repeat:
-                  for_each: "{{ notify_devices }}"
+                    - if:
+                        - condition: template
+                          value_template: "{{ persistent_notification }}"
+                      then:
+                        - action: persistent_notification.create
+                          data:
+                            title: "{{ display_name }} Needs Replacement"
+                            message: "{{ device_link }} {{ consumable_name }} is due for replacement."
+                            notification_id: "{{ notification_id }}"
+                    - if:
+                        - condition: template
+                          value_template: "{{ use_mobile }}"
+                      then:
+                        - repeat:
+                            for_each: "{{ notify_devices }}"
+                            sequence:
+                              - action: "notify.mobile_app_{{ device_attr(repeat.item, 'name') | slugify(separator='_') }}"
+                                data:
+                                  title: "{{ display_name }} Needs Replacement"
+                                  message: "{{ device_name }} {{ consumable_name }} is due for replacement."
+                                  data:
+                                    tag: "{{ notification_id }}"
+                                    clickAction: "{{ device_url }}"
+                - conditions:
+                    - condition: template
+                      value_template: "{{ is_warning }}"
                   sequence:
-                    - action: "notify.mobile_app_{{ device_attr(repeat.item, 'name') | slugify(separator='_') }}"
-                      data:
-                        title: "{{ display_name }} Replacement Soon"
-                        message: "{{ device_name }} {{ consumable_name }} has {{ days_remaining }} days remaining."
-                        data:
-                          tag: "{{ notification_id }}"
-                          clickAction: "{{ device_url }}"
-      - conditions:
-          - condition: template
-            value_template: "{{ is_normal }}"
-        sequence:
-          - if:
-              - condition: template
-                value_template: "{{ persistent_notification }}"
-            then:
-              - action: persistent_notification.dismiss
-                data:
-                  notification_id: "{{ notification_id }}"
-          - if:
-              - condition: template
-                value_template: "{{ use_mobile }}"
-            then:
-              - repeat:
-                  for_each: "{{ notify_devices }}"
+                    - if:
+                        - condition: template
+                          value_template: "{{ persistent_notification }}"
+                      then:
+                        - action: persistent_notification.create
+                          data:
+                            title: "{{ display_name }} Replacement Soon"
+                            message: "{{ device_link }} {{ consumable_name }} has {{ days_remaining }} days remaining."
+                            notification_id: "{{ notification_id }}"
+                    - if:
+                        - condition: template
+                          value_template: "{{ use_mobile }}"
+                      then:
+                        - repeat:
+                            for_each: "{{ notify_devices }}"
+                            sequence:
+                              - action: "notify.mobile_app_{{ device_attr(repeat.item, 'name') | slugify(separator='_') }}"
+                                data:
+                                  title: "{{ display_name }} Replacement Soon"
+                                  message: "{{ device_name }} {{ consumable_name }} has {{ days_remaining }} days remaining."
+                                  data:
+                                    tag: "{{ notification_id }}"
+                                    clickAction: "{{ device_url }}"
+                - conditions:
+                    - condition: template
+                      value_template: "{{ is_normal }}"
                   sequence:
-                    - action: "notify.mobile_app_{{ device_attr(repeat.item, 'name') | slugify(separator='_') }}"
-                      data:
-                        message: "clear_notification"
-                        data:
-                          tag: "{{ notification_id }}"
+                    - if:
+                        - condition: template
+                          value_template: "{{ persistent_notification }}"
+                      then:
+                        - action: persistent_notification.dismiss
+                          data:
+                            notification_id: "{{ notification_id }}"
+                    - if:
+                        - condition: template
+                          value_template: "{{ use_mobile }}"
+                      then:
+                        - repeat:
+                            for_each: "{{ notify_devices }}"
+                            sequence:
+                              - action: "notify.mobile_app_{{ device_attr(repeat.item, 'name') | slugify(separator='_') }}"
+                                data:
+                                  message: "clear_notification"
+                                  data:
+                                    tag: "{{ notification_id }}"
