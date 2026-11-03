@@ -66,7 +66,8 @@ async def test_button_press_sets_date_to_today(hass: HomeAssistant) -> None:
     date_entity_id = "date.test_device_test_filter_last_replaced"
     date_entity = hass.data["entity_components"]["date"].get_entity(date_entity_id)
     assert date_entity is not None
-    assert date_entity.native_value is None
+    await date_entity.async_set_value(date(2026, 1, 1))
+    assert date_entity.native_value == date(2026, 1, 1)
 
     # Press the button
     await hass.services.async_call(

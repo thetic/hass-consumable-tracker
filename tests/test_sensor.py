@@ -54,7 +54,7 @@ async def setup_integration(hass: HomeAssistant) -> MockConfigEntry:
 
 
 async def test_sensor_initial_state(hass: HomeAssistant) -> None:
-    """Test sensor shows full lifetime when no date is set."""
+    """Test a new sensor starts at the full lifetime."""
     await setup_integration(hass)
 
     state = hass.states.get("sensor.test_device_test_filter_days_remaining")

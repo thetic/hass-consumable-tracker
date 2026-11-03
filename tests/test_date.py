@@ -60,7 +60,7 @@ async def test_date_entity_exists(hass: HomeAssistant) -> None:
 
 
 async def test_date_entity_initial_state(hass: HomeAssistant) -> None:
-    """Test date entity starts with no value."""
+    """Test date entity starts at today when nothing was restored."""
     entry = create_config_entry(hass)
     await hass.config_entries.async_setup(entry.entry_id)
     await hass.async_block_till_done()
@@ -68,7 +68,7 @@ async def test_date_entity_initial_state(hass: HomeAssistant) -> None:
     date_entity_id = "date.test_device_test_filter_last_replaced"
     entity = hass.data["entity_components"]["date"].get_entity(date_entity_id)
     assert entity is not None
-    assert entity.native_value is None
+    assert entity.native_value == date.today()
 
 
 async def test_date_entity_set_value(hass: HomeAssistant) -> None:
@@ -136,7 +136,7 @@ async def test_date_entity_handles_invalid_restore_state(hass: HomeAssistant) ->
     date_entity_id = "date.test_device_test_filter_last_replaced"
     entity = hass.data["entity_components"]["date"].get_entity(date_entity_id)
     assert entity is not None
-    assert entity.native_value is None
+    assert entity.native_value == date.today()
 
 
 async def test_date_entity_handles_unknown_restore_state(hass: HomeAssistant) -> None:
@@ -158,4 +158,4 @@ async def test_date_entity_handles_unknown_restore_state(hass: HomeAssistant) ->
     date_entity_id = "date.test_device_test_filter_last_replaced"
     entity = hass.data["entity_components"]["date"].get_entity(date_entity_id)
     assert entity is not None
-    assert entity.native_value is None
+    assert entity.native_value == date.today()
