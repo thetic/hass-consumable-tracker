@@ -6,6 +6,8 @@ blueprint:
     is dismissed when the consumable is replaced. Supports persistent
     notifications and/or mobile app notifications.
   domain: automation
+  homeassistant:
+    min_version: "2024.10.0"
   input:
     consumable_sensor:
       name: Consumable Sensor
